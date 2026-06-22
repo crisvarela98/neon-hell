@@ -1,0 +1,8 @@
+node_modules/
+server/node_modules/
+web-client/node_modules/
+web-client/dist/
+.env
+server/.env
+web-client/.env
+*.log

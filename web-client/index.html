@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NEON HELL</title>
+    <link rel="stylesheet" href="/src/css/style.css" />
+  </head>
+  <body>
+    <div class="backdrop"></div>
+    <main class="app-shell">
+      <section class="screen active" id="screen-splash">
+        <div class="hero-panel splash-panel">
+          <p class="eyebrow">Neo Buenos Aires // 2089</p>
+          <h1>NEON HELL</h1>
+          <p class="hero-copy">
+            Una brecha digital vomita metal, carne y codigo corrupto. Entra al
+            SECTOR 13 y aguanta todo lo posible.
+          </p>
+          <div class="loading-bar">
+            <span></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-menu">
+        <div class="hero-panel menu-grid">
+          <div>
+            <p class="eyebrow">Retro FPS // Synthwave Survival</p>
+            <h1>NEON HELL</h1>
+            <p class="hero-copy">
+              Doom clasico, Wolfenstein y una ciudad neon en ruinas. Enfrenta
+              oleadas, mejora tu puntuacion y sube al ranking global.
+            </p>
+            <div class="account-chip" id="account-chip">No conectado</div>
+          </div>
+          <div class="menu-actions">
+            <div class="menu-showcase">
+              <article class="art-card art-menu">
+                <span>SECTOR 13</span>
+              </article>
+              <article class="art-card art-breach">
+                <span>BREACH CORE</span>
+              </article>
+              <article class="art-card art-boss">
+                <span>ARCHON PRIME</span>
+              </article>
+            </div>
+            <button class="neon-button" id="btn-ftue">FTUE / Primera mision</button>
+            <button class="neon-button" id="btn-start">Jugar supervivencia</button>
+            <button class="neon-button alt" id="btn-online">Online equipo vs maquina</button>
+            <button class="neon-button alt" id="btn-ranking">Ranking global</button>
+            <button class="neon-button alt" id="btn-account">Login / Cuenta</button>
+            <button class="neon-button alt" id="btn-lore">Lore / Data Vault</button>
+            <button class="neon-button alt" id="btn-controls">Controles</button>
+            <button class="neon-button ghost" id="btn-exit">Salir / volver</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-ftue">
+        <div class="hero-panel ftue-layout">
+          <div>
+            <p class="eyebrow">FTUE // Primer arranque</p>
+            <h2>Ruta de operador</h2>
+            <p class="hero-copy">
+              Crea cuenta, aprende el loop basico y entra a las primeras tres
+              misiones con progresion clara antes de abrir online.
+            </p>
+            <div class="ftue-steps" id="ftue-steps"></div>
+            <div class="footer-actions ftue-actions">
+              <button class="neon-button" id="btn-ftue-start">Comenzar mision 1</button>
+              <button class="neon-button alt" id="btn-ftue-account">Crear / entrar cuenta</button>
+              <button class="neon-button ghost" id="btn-ftue-back">Volver</button>
+            </div>
+          </div>
+          <div class="mission-stack" id="ftue-missions"></div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-online">
+        <div class="hero-panel online-layout">
+          <div>
+            <p class="eyebrow">Online PvE // Escuadron</p>
+            <h2>Equipo vs maquina</h2>
+            <p class="hero-copy">
+              Crea una sala o entra con codigo. El host inicia la mision y el
+              equipo comparte presencia, disparos y estado de partida.
+            </p>
+            <div class="online-actions">
+              <button class="neon-button" id="btn-online-create">Crear sala</button>
+              <div class="join-row">
+                <input id="online-room-code" maxlength="6" placeholder="CODIGO" />
+                <button class="neon-button alt" id="btn-online-join">Entrar</button>
+              </div>
+              <button class="neon-button" id="btn-online-start">Iniciar mision online</button>
+              <button class="neon-button ghost" id="btn-online-back">Volver</button>
+            </div>
+          </div>
+          <article class="panel-card online-roster">
+            <p class="eyebrow">Sala</p>
+            <h3 id="online-room-title">Sin sala</h3>
+            <div class="online-status" id="online-status">Conectando socket...</div>
+            <div class="online-players" id="online-players"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-briefing">
+        <div class="hero-panel briefing-layout">
+          <article class="briefing-art" id="briefing-art"></article>
+          <article class="panel-card briefing-copy">
+            <p class="eyebrow" id="briefing-chapter">Mision inicial</p>
+            <h2 id="briefing-title">SECTOR 13</h2>
+            <p class="hero-copy" id="briefing-text"></p>
+            <div class="briefing-list" id="briefing-objectives"></div>
+            <div class="footer-actions">
+              <button class="neon-button" id="btn-deploy">Desplegar</button>
+              <button class="neon-button ghost" id="btn-briefing-back">Volver</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-lore">
+        <div class="hero-panel">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Archivo de operacion</p>
+              <h2>Data Vault</h2>
+            </div>
+            <button class="neon-button ghost" id="btn-lore-back">Volver</button>
+          </div>
+          <div class="lore-layout">
+            <div class="lore-stack" id="lore-list"></div>
+            <div class="panel-card lore-dossier">
+              <div class="art-card art-boss dossier-art">
+                <span>Threat dossier // ARCHON PRIME</span>
+              </div>
+              <p class="hero-copy">
+                Si la brecha sigue viva despues del reactor, Neo Buenos Aires cae.
+                No hay evacuacion. No hay reemplazo. Solo cierre absoluto.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-auth">
+        <div class="panel-columns">
+          <article class="panel-card">
+            <p class="eyebrow">Acceso</p>
+            <h2>Login</h2>
+            <form id="login-form" class="stack-form">
+              <input type="text" name="identifier" placeholder="Usuario o email" required />
+              <input type="password" name="password" placeholder="Contrasena" required />
+              <button class="neon-button" type="submit">Iniciar sesion</button>
+            </form>
+          </article>
+          <article class="panel-card">
+            <p class="eyebrow">Nuevo operador</p>
+            <h2>Registro</h2>
+            <form id="register-form" class="stack-form">
+              <input type="text" name="username" placeholder="Username" minlength="3" maxlength="20" pattern="[A-Za-z0-9_\\-]{3,20}" required />
+              <input type="email" name="email" placeholder="Email" required />
+              <input type="password" name="password" placeholder="Contrasena" minlength="6" required />
+              <p class="form-hint">Usuario: 3-20 caracteres. Mail valido. Contrasena: minimo 6.</p>
+              <button class="neon-button" type="submit">Crear cuenta</button>
+            </form>
+          </article>
+        </div>
+        <div class="footer-actions">
+          <button class="neon-button ghost" id="btn-auth-back">Volver</button>
+          <button class="neon-button alt" id="btn-logout">Cerrar sesion</button>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-ranking">
+        <div class="hero-panel">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Top 20 global</p>
+              <h2>Ranking</h2>
+            </div>
+            <button class="neon-button ghost" id="btn-ranking-back">Volver</button>
+          </div>
+          <div class="ranking-list" id="ranking-list"></div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-controls">
+        <div class="hero-panel">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Manual tactico</p>
+              <h2>Controles</h2>
+            </div>
+            <button class="neon-button ghost" id="btn-controls-back">Volver</button>
+          </div>
+          <div class="controls-grid">
+            <article class="panel-card compact">
+              <h3>PC</h3>
+              <p>W / S: avanzar y retroceder</p>
+              <p>A / D: desplazamiento lateral</p>
+              <p>Mouse o flechas: mirar</p>
+              <p>Click o espacio: disparar</p>
+              <p>E: abrir puertas</p>
+              <p>Q: cambiar arma</p>
+              <p>M: alternar minimapa</p>
+            </article>
+            <article class="panel-card compact">
+              <h3>Celular</h3>
+              <p>Botones tactiles para mover y girar</p>
+              <p>Boton FIRE para disparar</p>
+              <p>Boton USE para abrir puertas</p>
+              <p>Canvas horizontal adaptado</p>
+            </article>
+            <article class="panel-card compact">
+              <h3>Objetivo</h3>
+              <p>Sobrevive a las oleadas</p>
+              <p>Consigue kills y bonus por wave</p>
+              <p>Guarda tu score al morir</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen game-screen" id="screen-game">
+        <div class="game-topbar">
+          <div>
+            <p class="eyebrow">Nivel</p>
+            <strong id="hud-level-name">SECTOR 13</strong>
+          </div>
+          <div>
+            <p class="eyebrow">Jugador</p>
+            <strong id="hud-player-name">Operador</strong>
+          </div>
+          <div>
+            <p class="eyebrow">Online</p>
+            <strong id="hud-online">Solo</strong>
+          </div>
+          <button class="neon-button ghost tiny" id="btn-game-menu">Menu</button>
+        </div>
+
+        <div class="canvas-frame">
+          <canvas id="game-canvas" width="960" height="540"></canvas>
+          <div class="hud">
+            <div class="hud-block">
+              <span>Vida</span>
+              <strong id="hud-health">100</strong>
+            </div>
+            <div class="hud-block">
+              <span>Municion</span>
+              <strong id="hud-ammo">60</strong>
+            </div>
+            <div class="hud-block">
+              <span>Arma</span>
+              <strong id="hud-weapon">Pistola Plasma</strong>
+            </div>
+            <div class="hud-block">
+              <span>Score</span>
+              <strong id="hud-score">0</strong>
+            </div>
+            <div class="hud-block">
+              <span>Wave</span>
+              <strong id="hud-wave">1</strong>
+            </div>
+            <div class="hud-block">
+              <span>Kills</span>
+              <strong id="hud-kills">0</strong>
+            </div>
+            <div class="hud-block">
+              <span>Boost</span>
+              <strong id="hud-boost">Normal</strong>
+            </div>
+            <div class="hud-block">
+              <span>Boss</span>
+              <strong id="hud-boss">Sin jefe</strong>
+            </div>
+          </div>
+          <div class="objective-panel">
+            <p class="eyebrow">Objetivo</p>
+            <strong id="hud-objective">Asegura el corredor.</strong>
+            <p id="hud-objective-detail">Sobrevive las oleadas iniciales.</p>
+          </div>
+          <div class="alert-strip" id="hud-alert">Entra al sector.</div>
+        </div>
+
+        <div class="touch-controls" id="touch-controls">
+          <button data-action="forward">▲</button>
+          <button data-action="backward">▼</button>
+          <button data-action="turnLeft">◀</button>
+          <button data-action="turnRight">▶</button>
+          <button data-action="fire" class="fire">FIRE</button>
+          <button data-action="use" class="use">USE</button>
+          <button data-action="swapWeapon" class="swap">SWAP</button>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-gameover">
+        <div class="hero-panel gameover-panel">
+          <p class="eyebrow">Sistema caido</p>
+          <h2>Game Over</h2>
+          <div class="stats-strip">
+            <div><span>Score</span><strong id="gameover-score">0</strong></div>
+            <div><span>Kills</span><strong id="gameover-kills">0</strong></div>
+            <div><span>Wave</span><strong id="gameover-wave">1</strong></div>
+            <div><span>Tiempo</span><strong id="gameover-time">0s</strong></div>
+          </div>
+          <div class="save-score-row">
+            <input
+              type="text"
+              id="score-username"
+              maxlength="20"
+              placeholder="Alias para ranking"
+            />
+            <button class="neon-button" id="btn-save-score">Guardar puntuacion</button>
+          </div>
+          <div class="footer-actions">
+            <button class="neon-button" id="btn-retry">Jugar de nuevo</button>
+            <button class="neon-button alt" id="btn-open-ranking">Ver ranking</button>
+            <button class="neon-button ghost" id="btn-back-menu">Volver al menu</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="/src/js/main.js"></script>
+  </body>
+</html>

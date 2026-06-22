@@ -4,54 +4,118 @@ NEON HELL es un FPS retro cyberpunk para navegador inspirado por Doom clasico, W
 
 ## Tecnologias
 
-- Frontend: HTML, CSS, JavaScript puro, Canvas 2D
+- Frontend: Vite, HTML, CSS, JavaScript puro, Canvas 2D
 - Backend: Node.js, Express, Socket.IO
 - Base de datos: MongoDB Atlas con Mongoose
 - Auth: bcryptjs y JSON Web Tokens
 
+## Estructura de deploy
+
+- `server`: backend Node.js para Render
+- `web-client`: frontend Vite para Vercel
+- `public`: version legacy/local previa del cliente
+
 ## Instalacion
 
+Backend:
+
 ```bash
+cd server
+npm install
+```
+
+Frontend:
+
+```bash
+cd web-client
 npm install
 ```
 
 ## Configuracion MongoDB
 
-La aplicacion lee la conexion exclusivamente desde variables de entorno.
+El backend lee la conexion exclusivamente desde variables de entorno.
 
-1. Crea un archivo `.env` en la raiz del proyecto.
+1. Crea un archivo `.env` en `server`.
 2. Usa una URI valida de MongoDB Atlas en `MONGODB_URI`.
 3. Define una clave fuerte en `JWT_SECRET`.
+4. Define la URL final de Vercel en `CLIENT_URL`.
 
 Ejemplo:
 
 ```env
 PORT=3000
 MONGODB_URI=mongodb+srv://crisvareladev_db_user:MHxxccXFmiIiBwZA@neon-hell.hyhk0z2.mongodb.net/?appName=Neon-hell
+CLIENT_URL=https://tu-app.vercel.app
 JWT_SECRET=change_this_secret
+NODE_ENV=production
 ```
 
 ## Variables de entorno
 
+Backend Render:
+
 - `PORT`: puerto HTTP del servidor
 - `MONGODB_URI`: conexion de MongoDB Atlas
+- `CLIENT_URL`: URL publica del frontend en Vercel
 - `JWT_SECRET`: firma para tokens de login
+- `NODE_ENV`: usar `production`
+
+Frontend Vercel:
+
+- `VITE_SERVER_URL`: URL publica del backend en Render
 
 ## Ejecucion
 
-Desarrollo:
+Backend local:
 
 ```bash
-npm run dev
-```
-
-Produccion:
-
-```bash
+cd server
 npm start
 ```
 
-El servidor solo inicia cuando MongoDB esta conectado. Si Atlas se desconecta, se registra el error y se programa una reconexion basica.
+Frontend local:
+
+```bash
+cd web-client
+npm run dev
+```
+
+El servidor solo inicia cuando MongoDB esta conectado. Si Atlas se desconecta, se registra el error y se programa una reconexion basica. En desarrollo, `web-client/vite.config.js` redirige `/api` y Socket.IO hacia `http://localhost:3000`. En produccion, el cliente usa `VITE_SERVER_URL`; no se usa `localhost`.
+
+## Deploy Render
+
+Crear un Web Service desde este repo:
+
+- Root directory: `server`
+- Build command: `npm install`
+- Start command: `npm start`
+
+Variables en Render:
+
+```env
+MONGODB_URI=
+CLIENT_URL=https://tu-app.vercel.app
+JWT_SECRET=una_clave_larga_y_privada
+NODE_ENV=production
+```
+
+Cuando Render entregue la URL publica, por ejemplo `https://neon-hell-api.onrender.com`, usala en Vercel como `VITE_SERVER_URL`.
+
+## Deploy Vercel
+
+Crear el proyecto desde este repo:
+
+- Root directory: `web-client`
+- Build command: `npm run build`
+- Output directory: `dist`
+
+Variables en Vercel:
+
+```env
+VITE_SERVER_URL=https://tu-backend.onrender.com
+```
+
+Despues de desplegar Vercel, copia su URL final y pegala en Render como `CLIENT_URL`. Esto habilita CORS para API y Socket.IO.
 
 ## Controles
 
