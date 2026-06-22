@@ -2,17 +2,26 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>NEON HELL</title>
+    <link rel="preload" as="image" href="/assets/images/neon-hell-splash-logo.png" />
     <link rel="stylesheet" href="/css/style.css" />
   </head>
   <body>
     <div class="backdrop"></div>
+    <div class="orientation-lock" aria-live="polite">
+      <div class="orientation-card">
+        <p class="eyebrow">Mobile // Landscape</p>
+        <h2>Gira el celular</h2>
+        <p>NEON HELL en movil se juega unicamente en horizontal para que entren el HUD, el joystick y los botones.</p>
+      </div>
+    </div>
     <main class="app-shell">
       <section class="screen active" id="screen-splash">
         <div class="hero-panel splash-panel">
           <p class="eyebrow">Neo Buenos Aires // 2089</p>
-          <h1>NEON HELL</h1>
+          <img class="splash-logo" src="/assets/images/neon-hell-splash-logo.png" alt="NEON HELL" />
+          <h1 class="sr-only">NEON HELL</h1>
           <p class="hero-copy">
             Una brecha digital vomita metal, carne y codigo corrupto. Entra al
             SECTOR 13 y aguanta todo lo posible.
@@ -29,8 +38,8 @@
             <p class="eyebrow">Retro FPS // Synthwave Survival</p>
             <h1>NEON HELL</h1>
             <p class="hero-copy">
-              Doom clasico, Wolfenstein y una ciudad neon en ruinas. Enfrenta
-              oleadas, mejora tu puntuacion y sube al ranking global.
+              Entra por Mision 1: Boot Bay, baja al Sector 13 y corta la brecha.
+              La cuenta es opcional: sirve para ranking, progreso y online.
             </p>
             <div class="account-chip" id="account-chip">No conectado</div>
           </div>
@@ -46,8 +55,8 @@
                 <span>ARCHON PRIME</span>
               </article>
             </div>
-            <button class="neon-button" id="btn-ftue">FTUE / Primera mision</button>
-            <button class="neon-button" id="btn-start">Jugar supervivencia</button>
+            <button class="neon-button" id="btn-start">Mision 1 // Boot Bay</button>
+            <button class="neon-button alt" id="btn-ftue">Historia / Misiones</button>
             <button class="neon-button alt" id="btn-online">Online equipo vs maquina</button>
             <button class="neon-button alt" id="btn-ranking">Ranking global</button>
             <button class="neon-button alt" id="btn-account">Login / Cuenta</button>
@@ -61,16 +70,16 @@
       <section class="screen" id="screen-ftue">
         <div class="hero-panel ftue-layout">
           <div>
-            <p class="eyebrow">FTUE // Primer arranque</p>
-            <h2>Ruta de operador</h2>
+            <p class="eyebrow">Campana // Modo historia</p>
+            <h2>Misiones de la brecha</h2>
             <p class="hero-copy">
-              Crea cuenta, aprende el loop basico y entra a las primeras tres
-              misiones con progresion clara antes de abrir online.
+              Empeza directo por la Mision 1. Crear cuenta es opcional y solo
+              sirve para guardar ranking, progreso y jugar online.
             </p>
             <div class="ftue-steps" id="ftue-steps"></div>
             <div class="footer-actions ftue-actions">
-              <button class="neon-button" id="btn-ftue-start">Comenzar mision 1</button>
-              <button class="neon-button alt" id="btn-ftue-account">Crear / entrar cuenta</button>
+              <button class="neon-button" id="btn-ftue-start">Jugar Mision 1</button>
+              <button class="neon-button alt" id="btn-ftue-account">Guardar progreso opcional</button>
               <button class="neon-button ghost" id="btn-ftue-back">Volver</button>
             </div>
           </div>
@@ -110,7 +119,7 @@
         <div class="hero-panel briefing-layout">
           <article class="briefing-art" id="briefing-art"></article>
           <article class="panel-card briefing-copy">
-            <p class="eyebrow" id="briefing-chapter">Mision inicial</p>
+            <p class="eyebrow" id="briefing-chapter">Historia // Mision 01</p>
             <h2 id="briefing-title">SECTOR 13</h2>
             <p class="hero-copy" id="briefing-text"></p>
             <div class="briefing-list" id="briefing-objectives"></div>
@@ -287,8 +296,11 @@
         </div>
 
         <div class="touch-controls" id="touch-controls">
-          <button data-action="forward">▲</button>
-          <button data-action="backward">▼</button>
+          <div class="virtual-joystick" id="movement-joystick" aria-label="Joystick de movimiento">
+            <div class="joystick-ring">
+              <div class="joystick-knob" id="movement-joystick-knob"></div>
+            </div>
+          </div>
           <button data-action="turnLeft">◀</button>
           <button data-action="turnRight">▶</button>
           <button data-action="fire" class="fire">FIRE</button>

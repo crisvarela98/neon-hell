@@ -1,10 +1,12 @@
-require("dotenv").config();
-
 const http = require("http");
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const { Server } = require("socket.io");
+const dotenv = require("dotenv");
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
+dotenv.config({ path: path.resolve(__dirname, "server", ".env") });
 
 const connectToDatabase = require("./config/database");
 const authRoutes = require("./routes/auth");

@@ -1,9 +1,12 @@
-require("dotenv").config();
-
 const http = require("http");
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const { Server } = require("socket.io");
+const dotenv = require("dotenv");
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
+dotenv.config({ path: path.resolve(__dirname, "..", ".env") });
 
 const connectToDatabase = require("./config/database");
 const authRoutes = require("./routes/auth");
@@ -49,6 +52,10 @@ const io = new Server(server, {
 });
 
 const port = Number(process.env.PORT) || 3000;
+
+if (isProduction && !process.env.JWT_SECRET) {
+  throw new Error("Falta definir JWT_SECRET en las variables del backend.");
+}
 
 app.use(cors(corsOptions));
 app.use(express.json());

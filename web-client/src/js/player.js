@@ -1,3 +1,7 @@
+function clampAxis(value) {
+  return Math.max(-1, Math.min(1, value));
+}
+
 export class Player {
   constructor(start) {
     this.radius = 0.22;
@@ -36,8 +40,12 @@ export class Player {
     this.damageFlash = Math.max(0, this.damageFlash - dt * 2.5);
 
     const turnAxis = Number(input.turnRight) - Number(input.turnLeft);
-    const moveAxis = Number(input.forward) - Number(input.backward);
-    const strafeAxis = Number(input.strafeRight) - Number(input.strafeLeft);
+    const moveAxis = clampAxis(
+      Number(input.forward) - Number(input.backward) + (input.moveAxis || 0),
+    );
+    const strafeAxis = clampAxis(
+      Number(input.strafeRight) - Number(input.strafeLeft) + (input.strafeAxis || 0),
+    );
 
     this.angle += turnAxis * this.turnSpeed * dt;
 

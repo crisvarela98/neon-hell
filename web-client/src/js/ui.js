@@ -1,4 +1,4 @@
-function escapeHtml(value) {
+﻿function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (character) => {
     const entities = {
       "&": "&amp;",
@@ -133,7 +133,7 @@ export class UIController {
       .join("");
 
     if (complete) {
-      this.showToast("FTUE ya marcado como completado.");
+      this.showToast("Modo historia listo para continuar.");
     }
   }
 
@@ -230,3 +230,4 @@ export class UIController {
     this.scoreUsername.value = stats.username || this.scoreUsername.value || "Operador";
   }
 }
+

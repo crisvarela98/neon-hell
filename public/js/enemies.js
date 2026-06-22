@@ -1,46 +1,59 @@
+﻿function makeSprite(path) {
+  if (typeof Image === "undefined") {
+    return null;
+  }
+
+  const image = new Image();
+  image.src = path;
+  return image;
+}
+
 const ENEMY_TYPES = {
   hacker: {
     id: "hacker",
     label: "Hacker Infectado",
     health: 40,
     speed: 1.75,
-    color: "#ff4fd8",
+    color: "#FF00FF",
     damage: 10,
     meleeRange: 0.75,
     attackCooldown: 0.9,
     scoreValue: 100,
     size: 0.48,
+    sprite: makeSprite("/assets/images/enemies/hacker-infectado.png"),
   },
   drone: {
     id: "drone",
     label: "Drone Corrupto",
     health: 70,
     speed: 1.05,
-    color: "#52d6ff",
+    color: "#00FFFF",
     damage: 12,
     rangedRange: 6.5,
     attackCooldown: 1.65,
     scoreValue: 200,
     size: 0.42,
+    sprite: makeSprite("/assets/images/enemies/drone-corrupto.png"),
   },
   demon: {
     id: "demon",
     label: "Demonio Cibernetico",
     health: 140,
     speed: 0.82,
-    color: "#ff4060",
+    color: "#FF0055",
     damage: 22,
     meleeRange: 0.92,
     attackCooldown: 1.35,
     scoreValue: 500,
     size: 0.64,
+    sprite: makeSprite("/assets/images/enemies/demonio-cibernetico.png"),
   },
   archon: {
     id: "archon",
     label: "ARCHON PRIME",
     health: 540,
     speed: 0.88,
-    color: "#ffd166",
+    color: "#39FF14",
     damage: 18,
     meleeRange: 1,
     rangedRange: 8.4,
@@ -48,6 +61,7 @@ const ENEMY_TYPES = {
     scoreValue: 2200,
     size: 0.92,
     isBoss: true,
+    sprite: makeSprite("/assets/images/enemies/archon-prime.png"),
   },
 };
 
@@ -102,6 +116,7 @@ export class Enemy {
     this.attackCooldown = Math.max(0.35, config.attackCooldown - waveMultiplier * 0.01);
     this.scoreValue = config.scoreValue;
     this.size = config.size;
+    this.sprite = config.sprite;
     this.maxHealth = Math.round(config.health * (1 + waveMultiplier * 0.12));
     this.health = this.maxHealth;
     this.x = x;
@@ -296,3 +311,5 @@ export function createWaveEnemies(spawnPoints, wave, countOverride = null) {
 export function createBossEnemy(spawn, wave) {
   return new Enemy("archon", spawn.x, spawn.y, Math.max(wave, 4));
 }
+
+

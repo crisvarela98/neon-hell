@@ -29,7 +29,7 @@ export function getInitialBriefing() {
   const level = levelSequence[0];
 
   return {
-    chapter: "Mision inicial",
+    chapter: "Historia // Mision 01",
     title: level.briefingTitle,
     text: level.briefingText,
     art: level.art,

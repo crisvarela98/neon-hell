@@ -1,4 +1,4 @@
-function normalizeAngle(angle) {
+﻿function normalizeAngle(angle) {
   while (angle < -Math.PI) {
     angle += Math.PI * 2;
   }
@@ -27,7 +27,7 @@ export class WeaponSystem {
     this.recoilKick = 0;
     this.recoilLift = 0;
     this.recoilTilt = 0;
-    this.currentColor = "#52d6ff";
+    this.currentColor = "#00FFFF";
     this.weaponOrder = ["repeater", "shotgun", "carbine", "hellburst"];
     this.currentWeapon = this.weaponOrder[0];
     this.configs = {
@@ -39,8 +39,8 @@ export class WeaponSystem {
         range: 9.8,
         fireInterval: 0.11,
         hitScale: 0.23,
-        color: "#52d6ff",
-        flashColor: "rgba(82, 214, 255, 0.95)",
+        color: "#00FFFF",
+        flashColor: "rgba(0, 255, 255, 0.95)",
         recoil: { kick: 16, lift: 18, tilt: -0.05 },
         shotSound: "repeater",
         mode: "single",
@@ -56,7 +56,7 @@ export class WeaponSystem {
           flashReachY: -0.16,
           flashRadius: 20,
         },
-        sprite: makeSprite("/assets/images/weapons/volt-repeater.png"),
+        sprite: makeSprite("/assets/images/weapons/fps/volt-repeater-fps.png"),
       },
       shotgun: {
         name: "Shard Shotgun",
@@ -68,8 +68,8 @@ export class WeaponSystem {
         hitScale: 0.42,
         spread: 0.17,
         fireInterval: 0.62,
-        color: "#ffd166",
-        flashColor: "rgba(255, 209, 102, 0.95)",
+        color: "#39FF14",
+        flashColor: "rgba(57, 255, 20, 0.95)",
         recoil: { kick: 38, lift: 34, tilt: -0.11 },
         shotSound: "shotgun",
         mode: "shotgun",
@@ -85,7 +85,7 @@ export class WeaponSystem {
           flashReachY: -0.12,
           flashRadius: 24,
         },
-        sprite: makeSprite("/assets/images/weapons/shard-shotgun.png"),
+        sprite: makeSprite("/assets/images/weapons/fps/shard-shotgun-fps.png"),
       },
       carbine: {
         name: "Rift Carbine",
@@ -95,8 +95,8 @@ export class WeaponSystem {
         range: 12.5,
         fireInterval: 0.52,
         hitScale: 0.17,
-        color: "#9c5cff",
-        flashColor: "rgba(156, 92, 255, 0.95)",
+        color: "#00FFFF",
+        flashColor: "rgba(255, 0, 255, 0.95)",
         recoil: { kick: 28, lift: 26, tilt: -0.08 },
         shotSound: "carbine",
         mode: "pierce",
@@ -113,7 +113,7 @@ export class WeaponSystem {
           flashReachY: -0.19,
           flashRadius: 26,
         },
-        sprite: makeSprite("/assets/images/weapons/rift-carbine.png"),
+        sprite: makeSprite("/assets/images/weapons/fps/rift-carbine-fps.png"),
       },
       hellburst: {
         name: "Hellburst",
@@ -124,8 +124,8 @@ export class WeaponSystem {
         fireInterval: 0.74,
         hitScale: 0.5,
         splashRadius: 1.55,
-        color: "#ff4060",
-        flashColor: "rgba(255, 64, 96, 0.98)",
+        color: "#FF0055",
+        flashColor: "rgba(255, 0, 85, 0.98)",
         recoil: { kick: 46, lift: 38, tilt: -0.14 },
         shotSound: "hellburst",
         mode: "splash",
@@ -141,7 +141,7 @@ export class WeaponSystem {
           flashReachY: -0.15,
           flashRadius: 30,
         },
-        sprite: makeSprite("/assets/images/weapons/hellburst.png"),
+        sprite: makeSprite("/assets/images/weapons/fps/hellburst-fps.png"),
       },
     };
   }
@@ -378,3 +378,5 @@ export class WeaponSystem {
       .slice(0, config.pierceCount);
   }
 }
+
+

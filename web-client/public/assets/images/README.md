@@ -1,8 +1,24 @@
 Assets visuales raster de NEON HELL:
 - `menu-bg.png`: fondo principal del menu
+- `neon-hell-splash-logo.png`: logo principal usado en el splash
 - `breach-core-bg.png`: arte del segundo nivel
 - `archon-prime.png`: key art del jefe
 - `weapons/volt-repeater.png`: rifle plasma automatico
 - `weapons/shard-shotgun.png`: escopeta pesada de corto alcance
 - `weapons/rift-carbine.png`: rifle perforante de precision
 - `weapons/hellburst.png`: canon infernal de nucleos
+- `weapons/fps/volt-repeater-fps.png`: vista primera persona del Volt Repeater
+- `weapons/fps/shard-shotgun-fps.png`: vista primera persona del Shard Shotgun
+- `weapons/fps/rift-carbine-fps.png`: vista primera persona del Rift Carbine
+- `weapons/fps/hellburst-fps.png`: vista primera persona del Hellburst
+- `enemies/hacker-infectado.png`: sprite transparente de Hacker Infectado
+- `enemies/drone-corrupto.png`: sprite transparente de Drone Corrupto
+- `enemies/demonio-cibernetico.png`: sprite transparente de Demonio Cibernetico
+- `enemies/archon-prime.png`: sprite transparente de ARCHON PRIME
+- `map-textures/wall-cyan-circuit.png`: textura de pared cian
+- `map-textures/wall-magenta-hazard.png`: textura de pared hazard magenta
+- `map-textures/floor-green-grid.png`: textura de piso con grilla verde
+- `map-textures/door-red-lock.png`: textura de puerta/core rojo
+- `atlases/neon-map-textures-atlas.png`: atlas fuente de texturas
+- `atlases/neon-fps-weapons-atlas.png`: atlas fuente de armas FPS
+- `atlases/neon-enemies-atlas.png`: atlas fuente de enemigos

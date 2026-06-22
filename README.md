@@ -1,6 +1,6 @@
 # NEON HELL
 
-NEON HELL es un FPS retro cyberpunk para navegador inspirado por Doom clasico, Wolfenstein 3D y los boomer shooters. Esta version incluye menu principal, FTUE, registro/login, tres misiones iniciales, supervivencia por oleadas, jefe de nivel, cuatro armas, power-ups temporales, raycasting en Canvas 2D, enemigos, puertas interactivas, HUD arcade, minimapa, pickups, audio sintetico, online PvE por sala y ranking global persistido en MongoDB Atlas.
+NEON HELL es un FPS retro cyberpunk para navegador inspirado por Doom clasico, Wolfenstein 3D y los boomer shooters. Esta version incluye menu principal, modo historia con tres misiones iniciales, registro/login opcional, supervivencia por oleadas, jefe de nivel, cuatro armas, power-ups temporales, raycasting en Canvas 2D, enemigos, puertas interactivas, HUD arcade, minimapa, pickups, audio sintetico, online PvE por sala y ranking global persistido en MongoDB Atlas.
 
 ## Tecnologias
 
@@ -35,7 +35,7 @@ npm install
 
 El backend lee la conexion exclusivamente desde variables de entorno.
 
-1. Crea un archivo `.env` en `server`.
+1. Crea un archivo `.env` en `server` o usa el `.env` de la raiz para desarrollo local.
 2. Usa una URI valida de MongoDB Atlas en `MONGODB_URI`.
 3. Define una clave fuerte en `JWT_SECRET`.
 4. Define la URL final de Vercel en `CLIENT_URL`.
@@ -69,18 +69,16 @@ Frontend Vercel:
 Backend local:
 
 ```bash
-cd server
-npm start
+npm run dev:server
 ```
 
 Frontend local:
 
 ```bash
-cd web-client
-npm run dev
+npm run dev:web
 ```
 
-El servidor solo inicia cuando MongoDB esta conectado. Si Atlas se desconecta, se registra el error y se programa una reconexion basica. En desarrollo, `web-client/vite.config.js` redirige `/api` y Socket.IO hacia `http://localhost:3000`. En produccion, el cliente usa `VITE_SERVER_URL`; no se usa `localhost`.
+Para registrarte en local tienen que estar corriendo los dos procesos: backend en `http://localhost:3000` y frontend en `http://localhost:5173`. El servidor solo inicia cuando MongoDB esta conectado. Si Atlas se desconecta, se registra el error y se programa una reconexion basica. En desarrollo, `web-client/vite.config.js` redirige `/api` y Socket.IO hacia `http://localhost:3000`. En produccion, el cliente usa `VITE_SERVER_URL`; no se usa `localhost`.
 
 ## Deploy Render
 
@@ -131,16 +129,28 @@ PC:
 
 Celular:
 
-- Botones tactiles para avanzar, retroceder, girar izquierda, girar derecha y disparar
+- Joystick virtual para avanzar, retroceder y desplazamiento lateral
+- Botones tactiles para girar izquierda, girar derecha y disparar
 - Boton `USE` para abrir puertas
 - Boton `SWAP` para cambiar arma
 
-## FTUE y misiones
+## Historia y misiones
 
-- FTUE con ruta de operador: registro, entrenamiento, campana y online PvE
-- Mision 01 `BOOT BAY`: tutorial jugable con una oleada corta
+- Modo historia visible desde el menu sin obligar al usuario a completar onboarding
+- Mision 01 `BOOT BAY`: primera mision jugable con una oleada corta
 - Mision 02 `SECTOR 13`: corredor de acceso con dos oleadas
 - Mision 03 `BREACH CORE`: camara de fractura con jefe `ARCHON PRIME`
+
+## Direccion visual
+
+La paleta de `NEON HELL` queda restringida a:
+
+- Fondo y estructuras: `#000000` y `#121214`
+- Energia y luces guia: `#00FFFF`
+- Peligro, enemigos y sangre: `#FF00FF` y `#FF0055`
+- Interfaz y HUD: `#39FF14`
+
+El frontend usa esta paleta en menus, HUD, pickups, enemigos, armas, muzzle flash, minimapa y render del raycaster.
 
 ## Online PvE
 

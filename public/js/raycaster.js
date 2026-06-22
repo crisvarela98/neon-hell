@@ -1,6 +1,28 @@
-const FOV = Math.PI / 3;
+﻿const FOV = Math.PI / 3;
 const MAX_DEPTH = 18;
 const RAY_STEP = 0.03;
+
+function makeTexture(path) {
+  if (typeof Image === "undefined") {
+    return null;
+  }
+
+  const image = new Image();
+  image.src = path;
+  return image;
+}
+
+const WALL_TEXTURES = {
+  1: makeTexture("/assets/images/map-textures/wall-magenta-hazard.png"),
+  2: makeTexture("/assets/images/map-textures/wall-cyan-circuit.png"),
+  3: makeTexture("/assets/images/map-textures/door-red-lock.png"),
+};
+
+const FLOOR_TEXTURE = makeTexture("/assets/images/map-textures/floor-green-grid.png");
+
+function isImageReady(image) {
+  return Boolean(image?.complete && image.naturalWidth > 0 && image.naturalHeight > 0);
+}
 
 function normalizeAngle(angle) {
   while (angle < -Math.PI) {
@@ -16,14 +38,64 @@ function normalizeAngle(angle) {
 
 function wallColor(cellType, shade) {
   if (cellType === 2) {
-    return `rgba(82, 214, 255, ${shade})`;
+    return `rgba(0, 255, 255, ${shade})`;
   }
 
   if (cellType === 3) {
-    return `rgba(197, 255, 67, ${shade})`;
+    return `rgba(57, 255, 20, ${shade})`;
   }
 
-  return `rgba(156, 92, 255, ${shade})`;
+  return `rgba(255, 0, 255, ${shade})`;
+}
+
+function getWallTexture(cellType) {
+  return WALL_TEXTURES[cellType] || WALL_TEXTURES[1];
+}
+
+function getTextureCoordinate(hit) {
+  const fractionX = ((hit.hitX % 1) + 1) % 1;
+  const fractionY = ((hit.hitY % 1) + 1) % 1;
+  const edgeDistanceX = Math.min(fractionX, 1 - fractionX);
+  const edgeDistanceY = Math.min(fractionY, 1 - fractionY);
+
+  return edgeDistanceX < edgeDistanceY ? fractionY : fractionX;
+}
+
+function drawWallStrip(ctx, hit, stripX, stripY, stripWidth, stripHeight, shade) {
+  const texture = getWallTexture(hit.cell);
+
+  if (!isImageReady(texture)) {
+    ctx.fillStyle = wallColor(hit.cell, shade);
+    ctx.fillRect(stripX, stripY, stripWidth, stripHeight);
+    return;
+  }
+
+  const textureColumn = Math.max(
+    0,
+    Math.min(texture.naturalWidth - 1, Math.floor(getTextureCoordinate(hit) * texture.naturalWidth)),
+  );
+
+  ctx.save();
+  ctx.globalAlpha = Math.max(0.44, Math.min(1, shade + 0.24));
+  ctx.drawImage(
+    texture,
+    textureColumn,
+    0,
+    1,
+    texture.naturalHeight,
+    stripX,
+    stripY,
+    stripWidth,
+    stripHeight,
+  );
+
+  ctx.globalAlpha = Math.min(0.7, Math.max(0, 1 - shade) * 0.85);
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(stripX, stripY, stripWidth, stripHeight);
+  ctx.restore();
+
+  ctx.fillStyle = `rgba(0,255,255,${Math.min(0.13, shade * 0.12)})`;
+  ctx.fillRect(stripX, stripY, stripWidth, 3);
 }
 
 function isSolid(cell) {
@@ -62,7 +134,19 @@ function castRay(map, originX, originY, angle) {
 }
 
 function drawFloorGrid(ctx, width, height) {
-  ctx.strokeStyle = "rgba(82, 214, 255, 0.08)";
+  if (isImageReady(FLOOR_TEXTURE)) {
+    const floorPattern = ctx.createPattern(FLOOR_TEXTURE, "repeat");
+
+    if (floorPattern) {
+      ctx.save();
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = floorPattern;
+      ctx.fillRect(0, height * 0.56, width, height * 0.44);
+      ctx.restore();
+    }
+  }
+
+  ctx.strokeStyle = "rgba(0, 255, 255, 0.08)";
   ctx.lineWidth = 1;
 
   for (let y = height * 0.56; y < height; y += 26) {
@@ -85,9 +169,12 @@ function drawSprites(ctx, game, depthBuffer) {
         type: "enemy",
         x: enemy.x,
         y: enemy.y,
-        color: enemy.hitFlash > 0 ? "#ffffff" : enemy.color,
+        color: enemy.hitFlash > 0 ? "#00FFFF" : enemy.color,
         size: enemy.size,
         bob: enemy.type === "drone" ? Math.sin(game.runtime * 4 + enemy.hoverPhase) * 10 : 0,
+        sprite: enemy.sprite,
+        hitFlash: enemy.hitFlash,
+        isBoss: enemy.isBoss,
       });
     }
   });
@@ -142,7 +229,7 @@ function drawSprites(ctx, game, depthBuffer) {
       type: "teammate",
       x: remotePlayer.x,
       y: remotePlayer.y,
-      color: "#c5ff43",
+      color: "#39FF14",
       size: 0.28,
       bob: Math.sin(game.runtime * 5) * 5,
       label: remotePlayer.username,
@@ -193,7 +280,7 @@ function drawSprites(ctx, game, depthBuffer) {
         ctx.translate(screenX, height / 2 + entity.bob);
         ctx.rotate(game.runtime * 0.6);
         ctx.fillRect(-size * 0.3, -size * 0.3, size * 0.6, size * 0.6);
-        ctx.strokeStyle = "rgba(255,255,255,0.65)";
+        ctx.strokeStyle = "rgba(0,255,255,0.65)";
         ctx.lineWidth = 2;
         ctx.strokeRect(-size * 0.3, -size * 0.3, size * 0.6, size * 0.6);
       } else if (entity.type === "blood") {
@@ -206,12 +293,27 @@ function drawSprites(ctx, game, depthBuffer) {
         ctx.rotate(Math.PI / 4);
         ctx.fillRect(-size * 0.34, -size * 0.34, size * 0.68, size * 0.68);
         ctx.rotate(-Math.PI / 4);
-        ctx.strokeStyle = "rgba(255,255,255,0.7)";
+        ctx.strokeStyle = "rgba(0,255,255,0.7)";
         ctx.lineWidth = 2;
         ctx.strokeRect(-size * 0.28, -size * 0.48, size * 0.56, size * 0.96);
+      } else if (isImageReady(entity.sprite)) {
+        const spriteHeight = size * (entity.isBoss ? 1.56 : 1.42);
+        const spriteWidth = spriteHeight * (entity.sprite.naturalWidth / entity.sprite.naturalHeight);
+        const enemyX = screenX - spriteWidth / 2;
+        const enemyY = height / 2 - spriteHeight / 2 + entity.bob;
+
+        ctx.drawImage(entity.sprite, enemyX, enemyY, spriteWidth, spriteHeight);
+
+        if (entity.hitFlash > 0) {
+          ctx.save();
+          ctx.globalCompositeOperation = "screen";
+          ctx.globalAlpha = Math.min(0.55, entity.hitFlash);
+          ctx.drawImage(entity.sprite, enemyX, enemyY, spriteWidth, spriteHeight);
+          ctx.restore();
+        }
       } else {
         ctx.fillRect(spriteX, spriteY, size, size * 1.25);
-        ctx.strokeStyle = "rgba(255,255,255,0.55)";
+        ctx.strokeStyle = "rgba(0,255,255,0.55)";
         ctx.lineWidth = 2;
         ctx.strokeRect(spriteX + 4, spriteY + 4, size - 8, size * 1.25 - 8);
       }
@@ -246,11 +348,11 @@ function drawWeaponOverlay(ctx, game) {
     const originY = overlay.originY || 0.9;
     ctx.globalAlpha = 0.96;
     ctx.shadowBlur = 20;
-    ctx.shadowColor = weapon.currentColor || "#52d6ff";
+    ctx.shadowColor = weapon.currentColor || "#00FFFF";
     ctx.drawImage(sprite, -spriteWidth * originX, -spriteHeight * originY, spriteWidth, spriteHeight);
   } else {
     ctx.globalAlpha = 0.8;
-    ctx.fillStyle = "rgba(11, 14, 25, 0.94)";
+    ctx.fillStyle = "rgba(18, 18, 20, 0.94)";
     ctx.beginPath();
     ctx.moveTo(-width * 0.18, height * 0.16);
     ctx.lineTo(width * 0.18, height * 0.16);
@@ -259,7 +361,7 @@ function drawWeaponOverlay(ctx, game) {
     ctx.closePath();
     ctx.fill();
 
-    ctx.strokeStyle = "rgba(82, 214, 255, 0.35)";
+    ctx.strokeStyle = "rgba(0, 255, 255, 0.35)";
     ctx.lineWidth = 3;
     ctx.stroke();
   }
@@ -272,7 +374,7 @@ function drawWeaponOverlay(ctx, game) {
     const flashRadius = overlay.flashRadius || 20;
     ctx.globalAlpha = weapon.muzzleFlash;
     ctx.globalCompositeOperation = "screen";
-    ctx.fillStyle = currentWeapon?.flashColor || "rgba(255, 218, 121, 0.95)";
+    ctx.fillStyle = currentWeapon?.flashColor || "rgba(57, 255, 20, 0.95)";
     ctx.beginPath();
     ctx.moveTo(muzzleX - 10, muzzleY - 6);
     ctx.lineTo(flashReachX, flashReachY);
@@ -290,7 +392,7 @@ function drawWeaponOverlay(ctx, game) {
   if (weapon.muzzleFlash > 0) {
     ctx.save();
     ctx.globalAlpha = weapon.muzzleFlash * 0.08;
-    ctx.fillStyle = currentWeapon?.flashColor || "rgba(255, 218, 121, 0.3)";
+    ctx.fillStyle = currentWeapon?.flashColor || "rgba(57, 255, 20, 0.3)";
     ctx.fillRect(0, 0, width, height * 0.56);
     ctx.restore();
   }
@@ -298,7 +400,7 @@ function drawWeaponOverlay(ctx, game) {
   if (player.damageFlash > 0) {
     ctx.save();
     ctx.globalAlpha = player.damageFlash * 0.24;
-    ctx.fillStyle = "#ff4060";
+    ctx.fillStyle = "#FF0055";
     ctx.fillRect(0, 0, width, height);
     ctx.restore();
   }
@@ -318,13 +420,13 @@ function drawBossBar(ctx, game) {
   const ratio = boss.health / boss.maxHealth;
 
   ctx.save();
-  ctx.fillStyle = "rgba(4, 8, 12, 0.85)";
+  ctx.fillStyle = "rgba(18, 18, 20, 0.85)";
   ctx.fillRect(x, y, width, height);
-  ctx.fillStyle = "#ffd166";
+  ctx.fillStyle = "#39FF14";
   ctx.fillRect(x, y, width * ratio, height);
-  ctx.strokeStyle = "rgba(255,255,255,0.6)";
+  ctx.strokeStyle = "rgba(0,255,255,0.6)";
   ctx.strokeRect(x, y, width, height);
-  ctx.fillStyle = "#fff7d6";
+  ctx.fillStyle = "#39FF14";
   ctx.font = "12px Segoe UI";
   ctx.textAlign = "center";
   ctx.fillText(boss.label, x + width / 2, y - 4);
@@ -368,7 +470,7 @@ function drawMinimap(ctx, game) {
 
   ctx.save();
   ctx.globalAlpha = 0.92;
-  ctx.fillStyle = "rgba(5, 8, 14, 0.85)";
+  ctx.fillStyle = "rgba(18, 18, 20, 0.85)";
   ctx.fillRect(originX - 10, originY - 10, width + 20, height + 20);
 
   for (let y = 0; y < level.map.length; y += 1) {
@@ -376,12 +478,12 @@ function drawMinimap(ctx, game) {
       const cell = level.map[y][x];
       ctx.fillStyle =
         cell === 0 || cell === 4
-          ? "rgba(11, 20, 31, 0.95)"
+          ? "rgba(18, 18, 20, 0.95)"
           : cell === 2
-            ? "rgba(82, 214, 255, 0.9)"
+            ? "rgba(0, 255, 255, 0.9)"
             : cell === 3
-              ? "rgba(197, 255, 67, 0.9)"
-              : "rgba(156, 92, 255, 0.9)";
+              ? "rgba(57, 255, 20, 0.9)"
+              : "rgba(255, 0, 255, 0.9)";
       ctx.fillRect(originX + x * scale, originY + y * scale, scale - 1, scale - 1);
     }
   }
@@ -411,7 +513,7 @@ function drawMinimap(ctx, game) {
     ctx.fill();
   });
 
-  ctx.strokeStyle = "#ffffff";
+  ctx.strokeStyle = "#00FFFF";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(originX + player.x * scale, originY + player.y * scale, 4, 0, Math.PI * 2);
@@ -434,14 +536,14 @@ export function renderScene(ctx, game) {
   ctx.clearRect(0, 0, width, height);
 
   const skyGradient = ctx.createLinearGradient(0, 0, 0, height * 0.6);
-  skyGradient.addColorStop(0, "#03040a");
-  skyGradient.addColorStop(1, "#13152b");
+  skyGradient.addColorStop(0, "#000000");
+  skyGradient.addColorStop(1, "#121214");
   ctx.fillStyle = skyGradient;
   ctx.fillRect(0, 0, width, height * 0.56);
 
   const floorGradient = ctx.createLinearGradient(0, height * 0.56, 0, height);
-  floorGradient.addColorStop(0, "#111422");
-  floorGradient.addColorStop(1, "#04060b");
+  floorGradient.addColorStop(0, "#121214");
+  floorGradient.addColorStop(1, "#000000");
   ctx.fillStyle = floorGradient;
   ctx.fillRect(0, height * 0.56, width, height * 0.44);
 
@@ -460,11 +562,7 @@ export function renderScene(ctx, game) {
     const stripX = index * sliceWidth;
     const stripY = (height - wallHeight) / 2;
 
-    ctx.fillStyle = wallColor(hit.cell, shade);
-    ctx.fillRect(stripX, stripY, sliceWidth + 1, wallHeight);
-
-    ctx.fillStyle = "rgba(255,255,255,0.08)";
-    ctx.fillRect(stripX, stripY, sliceWidth + 1, 3);
+    drawWallStrip(ctx, hit, stripX, stripY, sliceWidth + 1, wallHeight, shade);
 
     const start = Math.floor(stripX);
     const end = Math.min(width, Math.ceil(stripX + sliceWidth + 1));
@@ -480,7 +578,7 @@ export function renderScene(ctx, game) {
   drawBossBar(ctx, game);
   drawMinimap(ctx, game);
 
-  ctx.strokeStyle = "rgba(255,255,255,0.8)";
+  ctx.strokeStyle = "rgba(0,255,255,0.8)";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(width / 2 - 10, height / 2);
@@ -489,3 +587,5 @@ export function renderScene(ctx, game) {
   ctx.lineTo(width / 2, height / 2 + 10);
   ctx.stroke();
 }
+
+

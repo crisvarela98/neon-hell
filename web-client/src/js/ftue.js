@@ -4,20 +4,20 @@ export const FTUE_STORAGE_KEY = "neon-hell-ftue-complete";
 
 export const FTUE_STEPS = [
   {
-    title: "Crear operador",
-    body: "Registro con usuario, mail y contrasena para guardar progreso y ranking.",
+    title: "Mision 1: Boot Bay",
+    body: "Primer descenso corto para calibrar movimiento, disparo, pickups y puertas sin friccion.",
   },
   {
-    title: "Aprender combate",
-    body: "Movimiento, disparo, cambio de arma, pickups y puertas en una mision corta.",
+    title: "Mision 2: Sector 13",
+    body: "Corredor de acceso con mas presion, drones y rutas para dominar el ritmo del combate.",
   },
   {
-    title: "Entrar en campana",
-    body: "Tres misiones iniciales conectadas: tutorial, corredor y nucleo de brecha.",
+    title: "Mision 3: Breach Core",
+    body: "Camara de fractura con oleadas pesadas y apariciones de ARCHON PRIME.",
   },
   {
-    title: "Jugar online PvE",
-    body: "Sala de escuadron por codigo para equipo contra oleadas de maquina.",
+    title: "Online PvE opcional",
+    body: "Crea una sala por codigo cuando quieras jugar equipo contra maquina.",
   },
 ];
 

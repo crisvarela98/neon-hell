@@ -90,6 +90,7 @@ router.post("/register", async (request, response) => {
       user: sanitizeUser(user),
     });
   } catch (error) {
+    console.error("[auth] register failed:", error.message);
     return response.status(500).json({ message: "No se pudo registrar el usuario." });
   }
 });
@@ -133,6 +134,7 @@ router.post("/login", async (request, response) => {
       user: sanitizeUser(user),
     });
   } catch (error) {
+    console.error("[auth] login failed:", error.message);
     return response.status(500).json({ message: "No se pudo iniciar sesion." });
   }
 });

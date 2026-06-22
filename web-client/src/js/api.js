@@ -3,18 +3,32 @@ const API_ROOT = SERVER_URL ? `${SERVER_URL}/api` : "/api";
 const STORAGE_KEY = "neon-hell-session";
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_ROOT}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+  let response;
+
+  try {
+    response = await fetch(`${API_ROOT}${path}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+      ...options,
+    });
+  } catch (error) {
+    throw new Error(
+      SERVER_URL
+        ? "No se pudo conectar con el backend. Revisa que Render este activo y VITE_SERVER_URL sea correcto."
+        : "Backend offline. Inicia el servidor en http://localhost:3000 o configura VITE_SERVER_URL en Vercel.",
+    );
+  }
 
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(payload.message || "Error de red.");
+    if (!payload.message && [502, 503, 504].includes(response.status)) {
+      throw new Error("Backend offline. Inicia el servidor en http://localhost:3000.");
+    }
+
+    throw new Error(payload.message || `Error de API (${response.status}).`);
   }
 
   return payload;

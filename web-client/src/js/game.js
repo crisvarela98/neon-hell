@@ -1,4 +1,4 @@
-import { getLevelSequence } from "./levels.js";
+﻿import { getLevelSequence } from "./levels.js";
 import { Player } from "./player.js";
 import { createBossEnemy, createWaveEnemies } from "./enemies.js";
 import { WeaponSystem } from "./weapons.js";
@@ -6,26 +6,26 @@ import { renderScene } from "./raycaster.js";
 
 function getPickupColor(type) {
   if (type === "health") {
-    return "#c5ff43";
+    return "#39FF14";
   }
 
   if (type === "overcharge") {
-    return "#ff4fd8";
+    return "#FF00FF";
   }
 
   if (type === "fury") {
-    return "#ff7b54";
+    return "#FF0055";
   }
 
   if (type === "shield") {
-    return "#8be9fd";
+    return "#00FFFF";
   }
 
   if (type === "arsenal") {
-    return "#ffd166";
+    return "#39FF14";
   }
 
-  return "#52d6ff";
+  return "#00FFFF";
 }
 
 export class NeonHellGame {
@@ -61,6 +61,8 @@ export class NeonHellGame {
       turnRight: false,
       fire: false,
       use: false,
+      moveAxis: 0,
+      strafeAxis: 0,
     };
   }
 
@@ -175,6 +177,65 @@ export class NeonHellGame {
         }
       });
     });
+
+    this.bindMovementJoystick();
+  }
+
+  bindMovementJoystick() {
+    const joystick = document.getElementById("movement-joystick");
+    const knob = document.getElementById("movement-joystick-knob");
+
+    if (!joystick || !knob) {
+      return;
+    }
+
+    let activePointerId = null;
+
+    const resetJoystick = () => {
+      activePointerId = null;
+      this.input.moveAxis = 0;
+      this.input.strafeAxis = 0;
+      knob.style.transform = "translate(-50%, -50%)";
+      joystick.classList.remove("active");
+    };
+
+    const updateJoystick = (clientX, clientY) => {
+      const rect = joystick.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const deltaX = clientX - centerX;
+      const deltaY = clientY - centerY;
+      const maxDistance = Math.min(rect.width, rect.height) * 0.38;
+      const distance = Math.min(maxDistance, Math.hypot(deltaX, deltaY));
+      const angle = Math.atan2(deltaY, deltaX);
+      const normalizedX = maxDistance ? (Math.cos(angle) * distance) / maxDistance : 0;
+      const normalizedY = maxDistance ? (Math.sin(angle) * distance) / maxDistance : 0;
+
+      this.input.strafeAxis = Number(normalizedX.toFixed(3));
+      this.input.moveAxis = Number((-normalizedY).toFixed(3));
+      knob.style.transform = `translate(calc(-50% + ${normalizedX * maxDistance}px), calc(-50% + ${normalizedY * maxDistance}px))`;
+    };
+
+    joystick.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      activePointerId = event.pointerId;
+      joystick.setPointerCapture?.(event.pointerId);
+      joystick.classList.add("active");
+      updateJoystick(event.clientX, event.clientY);
+    });
+
+    joystick.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== activePointerId) {
+        return;
+      }
+
+      event.preventDefault();
+      updateJoystick(event.clientX, event.clientY);
+    });
+
+    joystick.addEventListener("pointerup", resetJoystick);
+    joystick.addEventListener("pointercancel", resetJoystick);
+    joystick.addEventListener("lostpointercapture", resetJoystick);
   }
 
   resizeCanvas() {
@@ -225,6 +286,8 @@ export class NeonHellGame {
 
   stop() {
     this.running = false;
+    this.input.moveAxis = 0;
+    this.input.strafeAxis = 0;
     cancelAnimationFrame(this.loopHandle);
   }
 
@@ -487,8 +550,8 @@ export class NeonHellGame {
 
     if (this.level.id === "training-bay") {
       return {
-        title: "Completa el arranque de operador.",
-        detail: "Elimina la oleada de calibracion, recoge recursos y prueba puertas antes del despliegue real.",
+        title: "Completa Mision 1: Boot Bay.",
+        detail: "Limpia la bahia de acceso, recoge recursos y abre la ruta hacia el Sector 13.",
       };
     }
 
@@ -597,7 +660,7 @@ export class NeonHellGame {
   }
 
   handleEnemyKill(enemy) {
-    this.spawnBloodBurst(enemy.x, enemy.y, enemy.isBoss ? 22 : 12, "#ff4060");
+    this.spawnBloodBurst(enemy.x, enemy.y, enemy.isBoss ? 22 : 12, "#FF0055");
     this.audio?.playKill();
 
     if (enemy.isBoss) {
@@ -749,7 +812,7 @@ export class NeonHellGame {
         x: Math.random(),
         y: Math.random() * 0.75,
         size: 4 + Math.random() * 14,
-        color: Math.random() > 0.65 ? "#ff99aa" : "#ff4060",
+        color: Math.random() > 0.65 ? "#FF00FF" : "#FF0055",
         life: 0.4 + Math.random() * 0.35,
       });
     }
@@ -788,3 +851,5 @@ export class NeonHellGame {
     return true;
   }
 }
+
+

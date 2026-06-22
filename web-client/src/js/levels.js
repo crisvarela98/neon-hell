@@ -116,13 +116,13 @@ export function getLevelSequence() {
       waveRewardHealth: 20,
       wavesUntilAdvance: 1,
       art: "/assets/images/menu-bg.png",
-      briefingTitle: "MISION 01 // ARRANQUE DE OPERADOR",
+      briefingTitle: "MISION 01 // BOOT BAY",
       briefingText:
-        "Primer contacto con la brecha. El objetivo es aprender movimiento, disparo, cambio de arma y uso de puertas antes de bajar al corredor real.",
+        "Primer contacto con la brecha. Boot Bay es una bahia de acceso tomada por codigo vivo: entra, limpia la zona y abre el camino hacia el Sector 13.",
       objectives: [
-        "Elimina una oleada corta para confirmar armas y punteria.",
-        "Recoge municion, medkit y arsenal antes de avanzar.",
-        "Usa una puerta neon con E o USE para probar interaccion.",
+        "Elimina la primera oleada de entidades corruptas.",
+        "Recoge municion, medkit y arsenal para preparar el descenso.",
+        "Abre una puerta neon con E o USE para asegurar la ruta.",
       ],
     }),
     createLevel({
@@ -181,7 +181,7 @@ export function getLevelSequence() {
 export function getMissionBriefs() {
   return getLevelSequence().slice(0, 3).map((level, index) => ({
     id: level.id,
-    label: `Mision ${index + 1}`,
+    label: `Mision ${String(index + 1).padStart(2, "0")}`,
     title: level.briefingTitle,
     body: level.briefingText,
     objectives: level.objectives,

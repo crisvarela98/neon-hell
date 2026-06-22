@@ -33,6 +33,17 @@ let lastRunSaved = false;
 let socket = null;
 let onlineRoom = null;
 
+function requestLandscapeMode() {
+  const isTouchMobile = window.matchMedia?.("(hover: none) and (pointer: coarse)")?.matches;
+  const orientation = window.screen?.orientation;
+
+  if (!isTouchMobile || !orientation?.lock) {
+    return;
+  }
+
+  orientation.lock("landscape").catch(() => {});
+}
+
 function currentUsername() {
   return getSession()?.user?.username || "Operador";
 }
@@ -64,6 +75,7 @@ async function openRanking() {
 }
 
 function startGame() {
+  requestLandscapeMode();
   markFtueComplete();
   audio.unlock().catch(() => {});
   audio.startMusic();
@@ -192,6 +204,8 @@ async function requestOnlineStart() {
     return;
   }
 
+  requestLandscapeMode();
+
   try {
     await emitWithAck("online:start", { code: onlineRoom.code });
   } catch (error) {
@@ -200,6 +214,7 @@ async function requestOnlineStart() {
 }
 
 function startOnlineGame(room) {
+  requestLandscapeMode();
   applyOnlineRoom(room);
   markFtueComplete();
   audio.unlock().catch(() => {});
@@ -307,11 +322,7 @@ function bindForms() {
       });
       ui.updateAccount(session.user);
       ui.showToast("Sesion iniciada.");
-      if (getFtueState().complete) {
-        ui.showScreen("menu");
-      } else {
-        openFtue();
-      }
+      ui.showScreen("menu");
       event.currentTarget.reset();
     } catch (error) {
       ui.showToast(error.message);
@@ -329,8 +340,8 @@ function bindForms() {
         password: formData.get("password"),
       });
       ui.updateAccount(session.user);
-      ui.showToast("Cuenta creada.");
-      openFtue();
+      ui.showToast("Cuenta creada. Ya podes jugar Mision 1.");
+      ui.showScreen("menu");
       event.currentTarget.reset();
     } catch (error) {
       ui.showToast(error.message);
@@ -366,12 +377,7 @@ function boot() {
 
   ui.showScreen("splash");
   window.setTimeout(() => {
-    if (getFtueState().complete) {
-      ui.showScreen("menu");
-      return;
-    }
-
-    openFtue();
+    ui.showScreen("menu");
   }, 1600);
 }
 
