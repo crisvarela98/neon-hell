@@ -1455,19 +1455,21 @@ h2 {
   }
 
   .screen:not(.game-screen) {
+    align-items: flex-start;
+    justify-content: center;
     padding:
-      max(5px, env(safe-area-inset-top))
-      max(8px, env(safe-area-inset-right))
-      max(5px, env(safe-area-inset-bottom))
-      max(8px, env(safe-area-inset-left));
+      max(2px, env(safe-area-inset-top))
+      max(6px, env(safe-area-inset-right))
+      max(2px, env(safe-area-inset-bottom))
+      max(6px, env(safe-area-inset-left));
   }
 
   .screen:not(.game-screen) .hero-panel,
   .screen:not(.game-screen) .panel-columns {
-    width: min(100%, 900px);
-    max-height: calc(100svh - 10px);
-    padding: 10px 12px;
-    border-radius: 16px;
+    width: min(100%, 920px);
+    max-height: calc(100svh - 4px);
+    padding: 7px 9px;
+    border-radius: 13px;
   }
 
   .menu-grid,
@@ -1476,30 +1478,30 @@ h2 {
   .ftue-layout,
   .online-layout {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    gap: 9px;
+    gap: 6px;
   }
 
   .controls-grid,
   .lore-layout,
   .options-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 6px;
   }
 
   .menu-showcase {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    gap: 4px;
   }
 
   .art-card {
-    min-height: 52px;
-    border-radius: 12px;
+    min-height: 42px;
+    border-radius: 10px;
   }
 
   .art-card span {
     left: 8px;
     bottom: 7px;
-    font-size: 0.58rem;
+    font-size: 0.52rem;
   }
 
   .splash-screen {
@@ -1513,24 +1515,24 @@ h2 {
   }
 
   h1 {
-    font-size: clamp(1.85rem, 6vw, 2.85rem);
-    margin-bottom: 8px;
+    font-size: clamp(1.55rem, 5.2vw, 2.35rem);
+    margin-bottom: 5px;
   }
 
   h2 {
-    font-size: clamp(1.15rem, 3.5vw, 1.65rem);
-    margin-bottom: 10px;
+    font-size: clamp(0.98rem, 3vw, 1.35rem);
+    margin-bottom: 6px;
   }
 
   h3 {
-    font-size: 0.92rem;
-    margin-bottom: 8px;
+    font-size: 0.82rem;
+    margin-bottom: 5px;
   }
 
   .eyebrow {
-    margin-bottom: 6px;
-    font-size: 0.56rem;
-    letter-spacing: 0.14em;
+    margin-bottom: 4px;
+    font-size: 0.5rem;
+    letter-spacing: 0.12em;
   }
 
   .hero-copy,
@@ -1543,8 +1545,8 @@ h2 {
   .online-player,
   .form-hint,
   .empty-state {
-    font-size: 0.72rem;
-    line-height: 1.28;
+    font-size: 0.64rem;
+    line-height: 1.18;
   }
 
   .panel-card,
@@ -1553,8 +1555,8 @@ h2 {
   .ftue-step,
   .mission-card,
   .online-player {
-    padding: 9px 10px;
-    border-radius: 12px;
+    padding: 6px 8px;
+    border-radius: 10px;
   }
 
   .menu-actions,
@@ -1565,33 +1567,33 @@ h2 {
   .online-actions,
   .online-players,
   .settings-actions {
-    gap: 6px;
+    gap: 4px;
   }
 
   .neon-button {
-    min-height: 34px;
-    padding: 8px 10px;
-    border-radius: 10px;
-    font-size: 0.74rem;
+    min-height: 29px;
+    padding: 6px 8px;
+    border-radius: 9px;
+    font-size: 0.66rem;
   }
 
   .account-chip {
-    padding: 7px 10px;
-    font-size: 0.72rem;
+    padding: 5px 8px;
+    font-size: 0.64rem;
   }
 
   .stack-form input,
   .save-score-row input,
   .join-row input {
-    min-height: 36px;
-    padding: 8px 10px;
-    border-radius: 10px;
+    min-height: 31px;
+    padding: 6px 8px;
+    border-radius: 9px;
     font-size: 16px;
   }
 
   .briefing-art {
-    min-height: 172px;
-    border-radius: 14px;
+    min-height: 138px;
+    border-radius: 12px;
   }
 
   .ranking-list {
