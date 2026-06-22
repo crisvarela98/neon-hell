@@ -1308,4 +1308,452 @@ h2 {
   }
 }
 
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  min-height: 100svh;
+  padding: 0;
+  background: #000000;
+}
+
+.splash-screen .splash-logo {
+  width: min(78vmin, 760px);
+  max-width: calc(100vw - 28px);
+  max-height: calc(100svh - 28px);
+  margin: 0;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.settings-actions {
+  display: grid;
+  gap: 10px;
+}
+
+#screen-auth {
+  flex-direction: column;
+  gap: 14px;
+}
+
+#screen-auth .footer-actions {
+  width: min(1080px, 100%);
+}
+
+.hud-hidden-meta {
+  display: none;
+}
+
+.game-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  min-height: 100svh;
+  padding: 0;
+  gap: 0;
+  background: #000000;
+}
+
+.game-topbar {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 35;
+  width: auto;
+}
+
+.game-topbar .neon-button {
+  min-height: 38px;
+  padding: 8px 14px;
+  background: rgba(18, 18, 20, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.canvas-frame {
+  width: 100vw;
+  height: 100svh;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#game-canvas {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.hud {
+  top: max(12px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  right: auto;
+  z-index: 12;
+  max-width: min(560px, 54vw);
+  gap: 8px;
+  pointer-events: none;
+}
+
+.hud-block {
+  min-width: 84px;
+  padding: 7px 9px;
+  border-radius: 11px;
+  background: rgba(18, 18, 20, 0.52);
+}
+
+.hud-block span {
+  font-size: 0.64rem;
+}
+
+.hud-block strong {
+  font-size: 0.92rem;
+}
+
+.objective-panel {
+  top: max(12px, env(safe-area-inset-top));
+  right: max(84px, calc(env(safe-area-inset-right) + 84px));
+  z-index: 12;
+  width: min(280px, 30vw);
+  padding: 10px 12px;
+  background: rgba(18, 18, 20, 0.54);
+  pointer-events: none;
+}
+
+.alert-strip {
+  z-index: 12;
+  left: 50%;
+  right: auto;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  width: min(520px, 46vw);
+  transform: translateX(-50%);
+  padding: 9px 12px;
+  background: rgba(18, 18, 20, 0.58);
+  pointer-events: none;
+}
+
+.touch-controls {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .options-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) and (max-width: 940px) and (orientation: landscape) {
+  .app-shell {
+    padding: 0;
+  }
+
+  .screen {
+    min-height: 100svh;
+  }
+
+  .screen:not(.game-screen) {
+    padding:
+      max(5px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(5px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+  }
+
+  .screen:not(.game-screen) .hero-panel,
+  .screen:not(.game-screen) .panel-columns {
+    width: min(100%, 900px);
+    max-height: calc(100svh - 10px);
+    padding: 10px 12px;
+    border-radius: 16px;
+  }
+
+  .menu-grid,
+  .panel-columns,
+  .briefing-layout,
+  .ftue-layout,
+  .online-layout {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 9px;
+  }
+
+  .controls-grid,
+  .lore-layout,
+  .options-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .menu-showcase {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .art-card {
+    min-height: 52px;
+    border-radius: 12px;
+  }
+
+  .art-card span {
+    left: 8px;
+    bottom: 7px;
+    font-size: 0.58rem;
+  }
+
+  .splash-screen {
+    padding: 0;
+  }
+
+  .splash-screen .splash-logo {
+    width: min(86vmin, 520px);
+    max-width: calc(100vw - 20px);
+    max-height: calc(100svh - 20px);
+  }
+
+  h1 {
+    font-size: clamp(1.85rem, 6vw, 2.85rem);
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-size: clamp(1.15rem, 3.5vw, 1.65rem);
+    margin-bottom: 10px;
+  }
+
+  h3 {
+    font-size: 0.92rem;
+    margin-bottom: 8px;
+  }
+
+  .eyebrow {
+    margin-bottom: 6px;
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+  }
+
+  .hero-copy,
+  .panel-card.compact p,
+  .briefing-item,
+  .lore-item,
+  .ftue-step,
+  .mission-card,
+  .online-status,
+  .online-player,
+  .form-hint,
+  .empty-state {
+    font-size: 0.72rem;
+    line-height: 1.28;
+  }
+
+  .panel-card,
+  .briefing-item,
+  .lore-item,
+  .ftue-step,
+  .mission-card,
+  .online-player {
+    padding: 9px 10px;
+    border-radius: 12px;
+  }
+
+  .menu-actions,
+  .footer-actions,
+  .stack-form,
+  .ftue-steps,
+  .mission-stack,
+  .online-actions,
+  .online-players,
+  .settings-actions {
+    gap: 6px;
+  }
+
+  .neon-button {
+    min-height: 34px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 0.74rem;
+  }
+
+  .account-chip {
+    padding: 7px 10px;
+    font-size: 0.72rem;
+  }
+
+  .stack-form input,
+  .save-score-row input,
+  .join-row input {
+    min-height: 36px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .briefing-art {
+    min-height: 172px;
+    border-radius: 14px;
+  }
+
+  .ranking-list {
+    margin-top: 10px;
+    gap: 6px;
+  }
+
+  .game-screen {
+    position: fixed;
+    inset: 0;
+    padding: 0;
+    gap: 0;
+  }
+
+  .game-topbar {
+    top: max(7px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+    width: auto;
+    display: block;
+  }
+
+  .game-topbar .neon-button {
+    min-height: 31px;
+    padding: 7px 11px;
+    font-size: 0.68rem;
+  }
+
+  .canvas-frame {
+    width: 100vw;
+    height: 100svh;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .hud {
+    top: max(7px, env(safe-area-inset-top));
+    left: max(8px, env(safe-area-inset-left));
+    right: auto;
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    max-width: 38vw;
+    gap: 4px;
+  }
+
+  .hud-block {
+    min-width: 0;
+    max-width: 180px;
+    padding: 4px 6px;
+    border-radius: 8px;
+  }
+
+  .hud-block:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .hud-block:nth-child(n + 4) {
+    display: none;
+  }
+
+  .hud-block span {
+    font-size: 0.48rem;
+  }
+
+  .hud-block strong {
+    display: block;
+    max-width: 170px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.62rem;
+  }
+
+  .objective-panel {
+    display: none;
+  }
+
+  .alert-strip {
+    left: 50%;
+    right: auto;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: min(42vw, 340px);
+    padding: 6px 9px;
+    border-radius: 10px;
+    font-size: 0.62rem;
+    line-height: 1.2;
+  }
+
+  .touch-controls {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: block;
+    width: auto;
+    height: auto;
+    pointer-events: none;
+  }
+
+  .virtual-joystick,
+  .touch-controls button {
+    position: absolute;
+    pointer-events: auto;
+  }
+
+  .virtual-joystick {
+    left: max(12px, env(safe-area-inset-left));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: 104px;
+    height: 104px;
+    padding: 7px;
+  }
+
+  .joystick-knob {
+    width: 38px;
+    height: 38px;
+  }
+
+  .touch-controls button {
+    min-height: 0;
+    padding: 0;
+    border-radius: 999px;
+    font-size: 0.64rem;
+    box-shadow: 0 0 18px rgba(0, 255, 255, 0.16);
+  }
+
+  .touch-controls button[data-action="turnLeft"],
+  .touch-controls button[data-action="turnRight"] {
+    bottom: max(22px, calc(env(safe-area-inset-bottom) + 22px));
+    width: 52px;
+    height: 52px;
+    background: rgba(18, 18, 20, 0.76);
+  }
+
+  .touch-controls button[data-action="turnLeft"] {
+    left: calc(env(safe-area-inset-left) + 132px);
+  }
+
+  .touch-controls button[data-action="turnRight"] {
+    left: calc(env(safe-area-inset-left) + 192px);
+  }
+
+  .touch-controls button.fire {
+    right: calc(env(safe-area-inset-right) + 104px);
+    bottom: max(22px, calc(env(safe-area-inset-bottom) + 22px));
+    width: 92px;
+    height: 92px;
+    font-size: 0.78rem;
+  }
+
+  .touch-controls button.use {
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(84px, calc(env(safe-area-inset-bottom) + 84px));
+    width: 68px;
+    height: 68px;
+  }
+
+  .touch-controls button.swap {
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(22px, calc(env(safe-area-inset-bottom) + 22px));
+    width: 78px;
+    height: 48px;
+    border-radius: 16px;
+  }
+}
+
 

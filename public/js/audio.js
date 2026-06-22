@@ -9,6 +9,8 @@ export class NeonAudio {
     this.ready = false;
     this.music = null;
     this.soundFiles = {};
+    this.musicEnabled = window.localStorage.getItem("neonhell.music") !== "off";
+    this.soundsEnabled = window.localStorage.getItem("neonhell.sounds") !== "off";
   }
 
   ensure() {
@@ -40,7 +42,7 @@ export class NeonAudio {
       await this.context.resume();
     }
 
-    if (this.music && this.music.paused) {
+    if (this.musicEnabled && this.music && this.music.paused) {
       this.music.play().catch(() => {});
     }
   }
@@ -63,17 +65,47 @@ export class NeonAudio {
   }
 
   playFile(path, volume = 0.35) {
+    if (!this.soundsEnabled) {
+      return;
+    }
+
     const audio = new Audio(path);
     audio.volume = volume;
     audio.play().catch(() => {});
   }
 
   startMusic() {
-    if (!this.ensure() || !this.music) {
+    if (!this.musicEnabled || !this.ensure() || !this.music) {
       return;
     }
 
     this.music.play().catch(() => {});
+  }
+
+  setMusicEnabled(enabled) {
+    this.musicEnabled = enabled;
+    window.localStorage.setItem("neonhell.music", enabled ? "on" : "off");
+
+    if (!enabled && this.music) {
+      this.music.pause();
+      this.music.currentTime = 0;
+    }
+
+    if (enabled) {
+      this.startMusic();
+    }
+  }
+
+  setSoundsEnabled(enabled) {
+    this.soundsEnabled = enabled;
+    window.localStorage.setItem("neonhell.sounds", enabled ? "on" : "off");
+  }
+
+  getSettings() {
+    return {
+      musicEnabled: this.musicEnabled,
+      soundsEnabled: this.soundsEnabled,
+    };
   }
 
   playSwapWeapon() {
@@ -93,7 +125,7 @@ export class NeonAudio {
   }
 
   pulse({ frequency, duration = 0.08, type = "sawtooth", volume = 0.18, slide = 0.75 }) {
-    if (!this.ensure()) {
+    if (!this.soundsEnabled || !this.ensure()) {
       return;
     }
 
@@ -125,7 +157,7 @@ export class NeonAudio {
   }
 
   noiseBurst({ duration = 0.12, volume = 0.12, highpass = 600 }) {
-    if (!this.ensure()) {
+    if (!this.soundsEnabled || !this.ensure()) {
       return;
     }
 

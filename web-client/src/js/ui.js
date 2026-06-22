@@ -24,6 +24,7 @@ export class UIController {
       auth: document.getElementById("screen-auth"),
       ranking: document.getElementById("screen-ranking"),
       controls: document.getElementById("screen-controls"),
+      options: document.getElementById("screen-options"),
       game: document.getElementById("screen-game"),
       gameover: document.getElementById("screen-gameover"),
     };

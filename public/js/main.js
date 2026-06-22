@@ -63,6 +63,25 @@ function openLore() {
   ui.showScreen("lore");
 }
 
+function updateAudioOptionButtons() {
+  const settings = audio.getSettings();
+  const musicButton = document.getElementById("btn-toggle-music");
+  const soundsButton = document.getElementById("btn-toggle-sounds");
+
+  if (musicButton) {
+    musicButton.textContent = `Musica: ${settings.musicEnabled ? "ON" : "OFF"}`;
+  }
+
+  if (soundsButton) {
+    soundsButton.textContent = `Sonidos: ${settings.soundsEnabled ? "ON" : "OFF"}`;
+  }
+}
+
+function openOptions() {
+  updateAudioOptionButtons();
+  ui.showScreen("options");
+}
+
 async function openRanking() {
   try {
     ui.showScreen("ranking");
@@ -277,8 +296,7 @@ function bindMenu() {
   document.getElementById("btn-online").addEventListener("click", openOnline);
   document.getElementById("btn-ranking").addEventListener("click", openRanking);
   document.getElementById("btn-account").addEventListener("click", () => ui.showScreen("auth"));
-  document.getElementById("btn-lore").addEventListener("click", openLore);
-  document.getElementById("btn-controls").addEventListener("click", () => ui.showScreen("controls"));
+  document.getElementById("btn-options").addEventListener("click", openOptions);
   document.getElementById("btn-exit").addEventListener("click", () => ui.showToast("NEON HELL listo para otra corrida."));
   document.getElementById("btn-ftue-start").addEventListener("click", startFtueMission);
   document.getElementById("btn-ftue-account").addEventListener("click", () => ui.showScreen("auth"));
@@ -293,10 +311,22 @@ function bindMenu() {
   document.getElementById("btn-auth-back").addEventListener("click", () => ui.showScreen("menu"));
   document.getElementById("btn-ranking-back").addEventListener("click", () => ui.showScreen("menu"));
   document.getElementById("btn-controls-back").addEventListener("click", () => ui.showScreen("menu"));
+  document.getElementById("btn-options-back").addEventListener("click", () => ui.showScreen("menu"));
+  document.getElementById("btn-options-controls").addEventListener("click", () => ui.showScreen("controls"));
+  document.getElementById("btn-options-lore").addEventListener("click", openLore);
+  document.getElementById("btn-toggle-music").addEventListener("click", () => {
+    audio.setMusicEnabled(!audio.getSettings().musicEnabled);
+    updateAudioOptionButtons();
+  });
+  document.getElementById("btn-toggle-sounds").addEventListener("click", () => {
+    audio.setSoundsEnabled(!audio.getSettings().soundsEnabled);
+    updateAudioOptionButtons();
+  });
   document.getElementById("btn-game-menu").addEventListener("click", () => {
     socket?.emit("online:leave");
     onlineRoom = null;
     game.stop();
+    ui.showToast("Pausa.");
     ui.showScreen("menu");
   });
   document.getElementById("btn-retry").addEventListener("click", startGame);
@@ -353,6 +383,7 @@ function boot() {
   bindMenu();
   bindForms();
   ui.updateAccount(getSession()?.user || null);
+  updateAudioOptionButtons();
 
   if (window.io) {
     socket = window.io();

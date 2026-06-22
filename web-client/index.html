@@ -17,19 +17,9 @@
       </div>
     </div>
     <main class="app-shell">
-      <section class="screen active" id="screen-splash">
-        <div class="hero-panel splash-panel">
-          <p class="eyebrow">Neo Buenos Aires // 2089</p>
-          <img class="splash-logo" src="/assets/images/neon-hell-splash-logo.png" alt="NEON HELL" />
-          <h1 class="sr-only">NEON HELL</h1>
-          <p class="hero-copy">
-            Una brecha digital vomita metal, carne y codigo corrupto. Entra al
-            SECTOR 13 y aguanta todo lo posible.
-          </p>
-          <div class="loading-bar">
-            <span></span>
-          </div>
-        </div>
+      <section class="screen active splash-screen" id="screen-splash">
+        <img class="splash-logo" src="/assets/images/neon-hell-splash-logo.png" alt="NEON HELL" />
+        <h1 class="sr-only">NEON HELL</h1>
       </section>
 
       <section class="screen" id="screen-menu">
@@ -60,8 +50,7 @@
             <button class="neon-button alt" id="btn-online">Online equipo vs maquina</button>
             <button class="neon-button alt" id="btn-ranking">Ranking global</button>
             <button class="neon-button alt" id="btn-account">Login / Cuenta</button>
-            <button class="neon-button alt" id="btn-lore">Lore / Data Vault</button>
-            <button class="neon-button alt" id="btn-controls">Controles</button>
+            <button class="neon-button alt" id="btn-options">Opciones</button>
             <button class="neon-button ghost" id="btn-exit">Salir / volver</button>
           </div>
         </div>
@@ -234,24 +223,45 @@
         </div>
       </section>
 
+      <section class="screen" id="screen-options">
+        <div class="hero-panel options-layout">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Configuracion</p>
+              <h2>Opciones</h2>
+            </div>
+            <button class="neon-button ghost" id="btn-options-back">Volver</button>
+          </div>
+          <div class="options-grid">
+            <article class="panel-card compact">
+              <p class="eyebrow">Audio</p>
+              <h3>Musica y sonidos</h3>
+              <div class="settings-actions">
+                <button class="neon-button alt" id="btn-toggle-music">Musica: ON</button>
+                <button class="neon-button alt" id="btn-toggle-sounds">Sonidos: ON</button>
+              </div>
+            </article>
+            <article class="panel-card compact">
+              <p class="eyebrow">Ayuda</p>
+              <h3>Manual y lore</h3>
+              <div class="settings-actions">
+                <button class="neon-button alt" id="btn-options-controls">Ver controles</button>
+                <button class="neon-button alt" id="btn-options-lore">Data Vault</button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <section class="screen game-screen" id="screen-game">
         <div class="game-topbar">
-          <div>
-            <p class="eyebrow">Nivel</p>
-            <strong id="hud-level-name">SECTOR 13</strong>
-          </div>
-          <div>
-            <p class="eyebrow">Jugador</p>
-            <strong id="hud-player-name">Operador</strong>
-          </div>
-          <div>
-            <p class="eyebrow">Online</p>
-            <strong id="hud-online">Solo</strong>
-          </div>
-          <button class="neon-button ghost tiny" id="btn-game-menu">Menu</button>
+          <button class="neon-button ghost tiny" id="btn-game-menu">Pausa</button>
         </div>
 
         <div class="canvas-frame">
+          <strong id="hud-level-name" class="hud-hidden-meta">SECTOR 13</strong>
+          <strong id="hud-player-name" class="hud-hidden-meta">Operador</strong>
+          <strong id="hud-online" class="hud-hidden-meta">Solo</strong>
           <canvas id="game-canvas" width="960" height="540"></canvas>
           <div class="hud">
             <div class="hud-block">
