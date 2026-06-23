@@ -20,9 +20,11 @@ const game = new NeonHellGame({
   onGameOver: (stats) => {
     lastRunStats = stats;
     lastRunSaved = false;
+    ui.hideMissionComplete();
     ui.setGameOver(stats);
-    ui.showScreen("gameover");
+    ui.showScreen("gameover", { replace: true });
   },
+  onMissionComplete: (mission) => ui.showMissionComplete(mission),
   onOnlineState: (payload) => sendOnlineState(payload),
   onOnlineShot: (payload) => sendOnlineShot(payload),
   audio,
@@ -46,6 +48,52 @@ function requestLandscapeMode() {
 
 function currentUsername() {
   return getSession()?.user?.username || "Operador";
+}
+
+function goToMenu({ replace = true } = {}) {
+  ui.showScreen("menu", { replace });
+}
+
+function pauseGameToMenu() {
+  socket?.emit("online:leave");
+  onlineRoom = null;
+  game.stop();
+  ui.hideMissionComplete();
+  ui.showToast("Pausa.");
+  goToMenu();
+}
+
+function navigateBack() {
+  if (ui.currentScreen === "splash") {
+    return;
+  }
+
+  if (ui.currentScreen === "game") {
+    pauseGameToMenu();
+    return;
+  }
+
+  if (ui.currentScreen === "gameover") {
+    goToMenu();
+    return;
+  }
+
+  if (ui.currentScreen === "menu") {
+    ui.showToast("Menu principal.");
+    return;
+  }
+
+  ui.goBack("menu");
+}
+
+function installBrowserBackGuard() {
+  window.history.replaceState({ neonHell: true }, "", window.location.href);
+  window.history.pushState({ neonHell: true }, "", window.location.href);
+
+  window.addEventListener("popstate", () => {
+    navigateBack();
+    window.history.pushState({ neonHell: true }, "", window.location.href);
+  });
 }
 
 function openFtue() {
@@ -96,6 +144,7 @@ async function openRanking() {
 function startGame() {
   requestLandscapeMode();
   markFtueComplete();
+  ui.hideMissionComplete();
   audio.unlock().catch(() => {});
   audio.startMusic();
   ui.showScreen("game");
@@ -236,6 +285,7 @@ function startOnlineGame(room) {
   requestLandscapeMode();
   applyOnlineRoom(room);
   markFtueComplete();
+  ui.hideMissionComplete();
   audio.unlock().catch(() => {});
   audio.startMusic();
   ui.showScreen("game");
@@ -299,18 +349,19 @@ function bindMenu() {
   document.getElementById("btn-exit").addEventListener("click", () => ui.showToast("NEON HELL listo para otra corrida."));
   document.getElementById("btn-ftue-start").addEventListener("click", startFtueMission);
   document.getElementById("btn-ftue-account").addEventListener("click", () => ui.showScreen("auth"));
-  document.getElementById("btn-ftue-back").addEventListener("click", () => ui.showScreen("menu"));
+  document.getElementById("btn-global-back").addEventListener("click", navigateBack);
+  document.getElementById("btn-ftue-back").addEventListener("click", () => goToMenu());
   document.getElementById("btn-online-create").addEventListener("click", createOnlineRoom);
   document.getElementById("btn-online-join").addEventListener("click", joinOnlineRoom);
   document.getElementById("btn-online-start").addEventListener("click", requestOnlineStart);
-  document.getElementById("btn-online-back").addEventListener("click", () => ui.showScreen("menu"));
+  document.getElementById("btn-online-back").addEventListener("click", () => goToMenu());
   document.getElementById("btn-deploy").addEventListener("click", startGame);
-  document.getElementById("btn-briefing-back").addEventListener("click", () => ui.showScreen("menu"));
-  document.getElementById("btn-lore-back").addEventListener("click", () => ui.showScreen("menu"));
-  document.getElementById("btn-auth-back").addEventListener("click", () => ui.showScreen("menu"));
-  document.getElementById("btn-ranking-back").addEventListener("click", () => ui.showScreen("menu"));
-  document.getElementById("btn-controls-back").addEventListener("click", () => ui.showScreen("menu"));
-  document.getElementById("btn-options-back").addEventListener("click", () => ui.showScreen("menu"));
+  document.getElementById("btn-briefing-back").addEventListener("click", () => goToMenu());
+  document.getElementById("btn-lore-back").addEventListener("click", () => goToMenu());
+  document.getElementById("btn-auth-back").addEventListener("click", () => goToMenu());
+  document.getElementById("btn-ranking-back").addEventListener("click", () => goToMenu());
+  document.getElementById("btn-controls-back").addEventListener("click", () => goToMenu());
+  document.getElementById("btn-options-back").addEventListener("click", () => goToMenu());
   document.getElementById("btn-options-controls").addEventListener("click", () => ui.showScreen("controls"));
   document.getElementById("btn-options-lore").addEventListener("click", openLore);
   document.getElementById("btn-toggle-music").addEventListener("click", () => {
@@ -322,16 +373,16 @@ function bindMenu() {
     updateAudioOptionButtons();
   });
   document.getElementById("btn-game-menu").addEventListener("click", () => {
-    socket?.emit("online:leave");
-    onlineRoom = null;
-    game.stop();
-    ui.showToast("Pausa.");
-    ui.showScreen("menu");
+    pauseGameToMenu();
   });
   document.getElementById("btn-retry").addEventListener("click", startGame);
   document.getElementById("btn-open-ranking").addEventListener("click", openRanking);
-  document.getElementById("btn-back-menu").addEventListener("click", () => ui.showScreen("menu"));
+  document.getElementById("btn-back-menu").addEventListener("click", () => goToMenu());
   document.getElementById("btn-save-score").addEventListener("click", handleSaveScore);
+  document.getElementById("btn-continue-mission").addEventListener("click", () => {
+    ui.hideMissionComplete();
+    game.continueMission();
+  });
   document.getElementById("btn-logout").addEventListener("click", () => {
     clearSession();
     ui.updateAccount(null);
@@ -351,7 +402,7 @@ function bindForms() {
       });
       ui.updateAccount(session.user);
       ui.showToast("Sesion iniciada.");
-      ui.showScreen("menu");
+      goToMenu();
       event.currentTarget.reset();
     } catch (error) {
       ui.showToast(error.message);
@@ -370,7 +421,7 @@ function bindForms() {
       });
       ui.updateAccount(session.user);
       ui.showToast("Cuenta creada. Ya podes jugar Mision 1.");
-      ui.showScreen("menu");
+      goToMenu();
       event.currentTarget.reset();
     } catch (error) {
       ui.showToast(error.message);
@@ -381,6 +432,7 @@ function bindForms() {
 function boot() {
   bindMenu();
   bindForms();
+  installBrowserBackGuard();
   ui.updateAccount(getSession()?.user || null);
   updateAudioOptionButtons();
 
@@ -405,9 +457,9 @@ function boot() {
     socket.on("online:shot", (payload) => game.receiveOnlineShot(payload));
   }
 
-  ui.showScreen("splash");
+  ui.showScreen("splash", { replace: true });
   window.setTimeout(() => {
-    ui.showScreen("menu");
+    goToMenu();
   }, 1600);
 }
 

@@ -29,11 +29,20 @@ function getPickupColor(type) {
 }
 
 export class NeonHellGame {
-  constructor({ canvas, onHudChange, onGameOver, onOnlineState, onOnlineShot, audio = null }) {
+  constructor({
+    canvas,
+    onHudChange,
+    onGameOver,
+    onMissionComplete,
+    onOnlineState,
+    onOnlineShot,
+    audio = null,
+  }) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d");
     this.onHudChange = onHudChange;
     this.onGameOver = onGameOver;
+    this.onMissionComplete = onMissionComplete;
     this.onOnlineState = onOnlineState;
     this.onOnlineShot = onOnlineShot;
     this.audio = audio;
@@ -330,6 +339,7 @@ export class NeonHellGame {
       ? `Escuadron conectado en sala ${this.onlineRoomCode}.`
       : "Entrando al sector.";
     this.gameOver = false;
+    this.missionCompletePending = false;
     this.running = true;
     this.loadLevel(this.levelIndex);
     this.nextWave(true);
@@ -370,6 +380,13 @@ export class NeonHellGame {
     }
 
     this.runtime += dt;
+
+    if (this.missionCompletePending) {
+      this.weapon.update(dt);
+      this.emitHud();
+      return;
+    }
+
     this.onlineStateTimer += dt;
     this.useCooldown = Math.max(0, this.useCooldown - dt);
     this.player.timeSurvived += dt;
@@ -404,7 +421,7 @@ export class NeonHellGame {
 
       if (this.waveDelay >= 1.4) {
         if (this.shouldAdvanceLevel()) {
-          this.advanceLevel();
+          this.completeCurrentMission();
         } else {
           this.nextWave();
         }
@@ -522,6 +539,41 @@ export class NeonHellGame {
     this.nextWave(true);
   }
 
+  completeCurrentMission() {
+    if (this.missionCompletePending) {
+      return;
+    }
+
+    const completedLevel = this.level;
+    const nextLevel = this.levelSequence[this.levelIndex + 1];
+
+    this.missionCompletePending = true;
+    this.input.fire = false;
+    this.input.use = false;
+    this.input.moveAxis = 0;
+    this.input.strafeAxis = 0;
+    this.pushAlert(`Mision completada: ${completedLevel.name}.`);
+
+    this.onMissionComplete?.({
+      title: completedLevel.name,
+      text: nextLevel
+        ? `Zona limpia. Toca Continuar para entrar en ${nextLevel.name}.`
+        : "Zona limpia. Mision final completada.",
+      nextTitle: nextLevel?.name || "Fin",
+      score: this.player.score,
+      kills: this.player.kills,
+    });
+  }
+
+  continueMission() {
+    if (!this.missionCompletePending || this.gameOver) {
+      return;
+    }
+
+    this.missionCompletePending = false;
+    this.advanceLevel();
+  }
+
   finishRun() {
     this.gameOver = true;
     this.running = false;
@@ -607,15 +659,15 @@ export class NeonHellGame {
 
     if (this.level.id === "training-bay") {
       return {
-        title: "Completa Mision 1: Boot Bay.",
-        detail: "Limpia la bahia de acceso, recoge recursos y abre la ruta hacia el Sector 13.",
+        title: "Mision 1: limpia Boot Bay.",
+        detail: "Elimina la oleada. Cuando no queden enemigos, aparecera el boton Continuar.",
       };
     }
 
     if (this.level.id === "sector13") {
       return {
-        title: "Asegura el corredor de acceso.",
-        detail: `${Math.min(this.levelWave, this.level.wavesUntilAdvance)}/${this.level.wavesUntilAdvance} oleadas despejadas antes del descenso al reactor.`,
+        title: "Mision 2: asegura Sector 13.",
+        detail: `Oleadas completadas: ${Math.min(this.levelWave, this.level.wavesUntilAdvance)}/${this.level.wavesUntilAdvance}. Al terminar aparece Continuar.`,
       };
     }
 

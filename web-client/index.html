@@ -16,6 +16,7 @@
         <p>NEON HELL en movil se juega unicamente en horizontal para que entren el HUD, el joystick y los botones.</p>
       </div>
     </div>
+    <button class="global-back-button" id="btn-global-back" type="button" aria-label="Volver atras">← Volver</button>
     <main class="app-shell">
       <section class="screen active splash-screen" id="screen-splash">
         <img class="splash-logo" src="/assets/images/neon-hell-splash-logo.png" alt="NEON HELL" />
@@ -300,6 +301,19 @@
             <p class="eyebrow">Objetivo</p>
             <strong id="hud-objective">Asegura el corredor.</strong>
             <p id="hud-objective-detail">Sobrevive las oleadas iniciales.</p>
+          </div>
+          <div class="mission-complete-overlay hidden" id="mission-complete-overlay">
+            <article class="mission-complete-card">
+              <p class="eyebrow">Mision completada</p>
+              <h2 id="mission-complete-title">Boot Bay asegurada</h2>
+              <p id="mission-complete-text">La zona quedo limpia. Toca continuar para avanzar.</p>
+              <div class="mission-complete-stats">
+                <div><span>Score</span><strong id="mission-complete-score">0</strong></div>
+                <div><span>Kills</span><strong id="mission-complete-kills">0</strong></div>
+                <div><span>Siguiente</span><strong id="mission-complete-next">Mision 02</strong></div>
+              </div>
+              <button class="neon-button" id="btn-continue-mission">Continuar</button>
+            </article>
           </div>
           <div class="alert-strip" id="hud-alert">Entra al sector.</div>
         </div>

@@ -4,14 +4,15 @@ const STORAGE_KEY = "neon-hell-session";
 
 async function request(path, options = {}) {
   let response;
+  const { headers = {}, ...fetchOptions } = options;
 
   try {
     response = await fetch(`${API_ROOT}${path}`, {
+      ...fetchOptions,
       headers: {
         "Content-Type": "application/json",
-        ...(options.headers || {}),
+        ...headers,
       },
-      ...options,
     });
   } catch (error) {
     throw new Error(

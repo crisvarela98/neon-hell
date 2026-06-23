@@ -29,6 +29,9 @@ export class UIController {
       gameover: document.getElementById("screen-gameover"),
     };
 
+    this.currentScreen = null;
+    this.screenHistory = [];
+    this.backButton = document.getElementById("btn-global-back");
     this.toast = document.getElementById("toast");
     this.accountChip = document.getElementById("account-chip");
     this.rankingList = document.getElementById("ranking-list");
@@ -77,11 +80,46 @@ export class UIController {
       wave: document.getElementById("gameover-wave"),
       time: document.getElementById("gameover-time"),
     };
+
+    this.missionComplete = {
+      overlay: document.getElementById("mission-complete-overlay"),
+      title: document.getElementById("mission-complete-title"),
+      text: document.getElementById("mission-complete-text"),
+      score: document.getElementById("mission-complete-score"),
+      kills: document.getElementById("mission-complete-kills"),
+      next: document.getElementById("mission-complete-next"),
+    };
   }
 
-  showScreen(name) {
+  showScreen(name, { replace = false } = {}) {
+    if (!this.screens[name]) {
+      return;
+    }
+
+    if (this.currentScreen && this.currentScreen !== name && !replace) {
+      this.screenHistory.push(this.currentScreen);
+      this.screenHistory = this.screenHistory.slice(-24);
+    }
+
     Object.values(this.screens).forEach((screen) => screen.classList.remove("active"));
-    this.screens[name]?.classList.add("active");
+    this.screens[name].classList.add("active");
+    this.currentScreen = name;
+    document.body.dataset.screen = name;
+    this.updateBackButton();
+  }
+
+  goBack(fallback = "menu") {
+    const target = this.screenHistory.pop() || fallback;
+    this.showScreen(target, { replace: true });
+  }
+
+  updateBackButton() {
+    if (!this.backButton) {
+      return;
+    }
+
+    const shouldHide = this.currentScreen === "splash";
+    this.backButton.classList.toggle("hidden", shouldHide);
   }
 
   updateAccount(user) {
@@ -236,6 +274,19 @@ export class UIController {
     this.gameOverStats.wave.textContent = stats.wave;
     this.gameOverStats.time.textContent = `${stats.timeSurvived}s`;
     this.scoreUsername.value = stats.username || this.scoreUsername.value || "Operador";
+  }
+
+  showMissionComplete(data) {
+    this.missionComplete.title.textContent = data.title;
+    this.missionComplete.text.textContent = data.text;
+    this.missionComplete.score.textContent = data.score;
+    this.missionComplete.kills.textContent = data.kills;
+    this.missionComplete.next.textContent = data.nextTitle;
+    this.missionComplete.overlay.classList.remove("hidden");
+  }
+
+  hideMissionComplete() {
+    this.missionComplete.overlay.classList.add("hidden");
   }
 }
 
