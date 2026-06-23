@@ -28,8 +28,21 @@ const allowedOrigins = new Set([
   ...(isProduction ? [] : developmentOrigins),
 ]);
 
+function isVercelOrigin(origin) {
+  if (!origin) {
+    return false;
+  }
+
+  try {
+    const { protocol, hostname } = new URL(origin);
+    return protocol === "https:" && hostname.endsWith(".vercel.app");
+  } catch (error) {
+    return false;
+  }
+}
+
 function isAllowedOrigin(origin) {
-  return !origin || allowedOrigins.has(origin);
+  return !origin || allowedOrigins.has(origin) || (isProduction && isVercelOrigin(origin));
 }
 
 const corsOptions = {

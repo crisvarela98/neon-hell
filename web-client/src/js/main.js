@@ -293,7 +293,6 @@ function bindMenu() {
 
   window.addEventListener("pointerdown", unlockAudio, { once: true });
   window.addEventListener("keydown", unlockAudio, { once: true });
-  document.getElementById("btn-ftue").addEventListener("click", openFtue);
   document.getElementById("btn-start").addEventListener("click", openBriefing);
   document.getElementById("btn-online").addEventListener("click", openOnline);
   document.getElementById("btn-ranking").addEventListener("click", openRanking);
