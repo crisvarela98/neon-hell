@@ -1,6 +1,6 @@
 # NEON HELL
 
-NEON HELL es un FPS retro cyberpunk para navegador inspirado por Doom clasico, Wolfenstein 3D y los boomer shooters. Esta version incluye menu principal, modo historia con tres misiones iniciales, registro/login opcional, supervivencia por oleadas, jefe de nivel, cuatro armas, power-ups temporales, raycasting en Canvas 2D, enemigos, puertas interactivas, HUD arcade, minimapa, pickups, audio sintetico, online PvE por sala y ranking global persistido en MongoDB Atlas.
+NEON HELL es un FPS retro cyberpunk para navegador inspirado por Doom clasico, Wolfenstein 3D y los boomer shooters. Esta version incluye menu principal, modo historia con cinco misiones iniciales, registro/login opcional, progresion de cuenta, armas desbloqueables, mejoras permanentes, misiones diarias y semanales, pase de temporada, logros, cosmeticos, retos directos entre amigos, historial de partidas, supervivencia por oleadas, varios jefes, mutadores de run, eventos temporales, raycasting en Canvas 2D, enemigos, puertas interactivas, HUD arcade, minimapa, pickups, audio sintetico, online PvE por sala, squad horde con rewards cooperativas y ranking global persistido en MongoDB Atlas.
 
 ## Tecnologias
 
@@ -140,6 +140,8 @@ Celular:
 - Mision 01 `BOOT BAY`: primera mision jugable con una oleada corta
 - Mision 02 `SECTOR 13`: corredor de acceso con dos oleadas
 - Mision 03 `BREACH CORE`: camara de fractura con jefe `ARCHON PRIME`
+- Mision 04 `GLASS HARBOR`: puerto inundado con `MIRAGE WARDEN`
+- Mision 05 `NULL CATHEDRAL`: santuario final con `NULL SERAPH`
 
 ## Direccion visual
 
@@ -158,16 +160,25 @@ El frontend usa esta paleta en menus, HUD, pickups, enemigos, armas, muzzle flas
 - Requiere usuario logueado
 - Un jugador crea sala y comparte el codigo
 - Hasta 4 operadores pueden entrar a la misma sala
+- El host puede definir modo y nombre del squad antes de iniciar
 - El host inicia la partida para todo el equipo
 - Socket.IO sincroniza roster, presencia de companeros, estado basico y disparos
+- `Squad Horde` otorga bonus de XP, tokens de temporada y ranking por escuadron
 
 ## Gameplay extra
 
 - Pickups de `health`, `ammo` y `overcharge`
 - Power-ups temporales `fury`, `shield` y `arsenal`
-- Tres misiones iniciales: `BOOT BAY`, `SECTOR 13` y `BREACH CORE`
-- Jefe `ARCHON PRIME` en waves especiales del segundo nivel
-- Cuatro armas jugables: `Volt Repeater`, `Shard Shotgun`, `Rift Carbine` y `Hellburst`
+- Cinco misiones iniciales con biomas y jefes rotativos
+- Jefes `ARCHON PRIME`, `MIRAGE WARDEN` y `NULL SERAPH`
+- Cuatro clases de armas jugables: `Volt Repeater`, `Shard Shotgun`, `Rift Carbine` y `Hellburst`
+- Progresion de cuenta con nivel, XP, mejoras permanentes y desbloqueo de armas
+- Misiones diarias y semanales con recompensas de XP
+- Pase de temporada con tiers, tokens y recompensas cosmeticas
+- Logros con progreso persistente y rewards de identidad
+- Cosmeticos de cuenta: titulos, banners, emotes y skins
+- Eventos temporales y mutadores que cambian ritmo, pickups y oleadas
+- Ranking global, ranking de amigos, ranking de squads, historial de corridas y retos directos
 - Arte raster propio en `public/assets/images`
 - Musica loop y SFX propios en `public/assets/music` y `public/assets/sounds`
 - Briefing previo a la partida y archivo de lore en menu
@@ -183,7 +194,11 @@ El frontend usa esta paleta en menus, HUD, pickups, enemigos, armas, muzzle flas
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
+- `GET /api/auth/me`
 - `GET /api/scores/top`
+- `GET /api/scores/social`
+- `GET /api/scores/squads`
+- `POST /api/scores/challenges/:username`
 - `POST /api/scores`
 
 ## Proximas mejoras

@@ -3,14 +3,14 @@ function clampAxis(value) {
 }
 
 export class Player {
-  constructor(start) {
+  constructor(start, modifiers = {}) {
     this.radius = 0.22;
     this.turnSpeed = 2.4;
-    this.moveSpeed = 2.9;
-    this.maxHealth = 100;
-    this.maxAmmo = 220;
+    this.moveSpeed = 2.9 * (modifiers.baseSpeedMultiplier || 1);
+    this.maxHealth = 100 + (modifiers.extraHealth || 0);
+    this.maxAmmo = 220 + (modifiers.extraAmmo || 0);
     this.maxAltAmmo = 28;
-    this.maxShellAmmo = 40;
+    this.maxShellAmmo = 40 + Math.round((modifiers.extraAmmo || 0) * 0.18);
     this.weaponName = "Volt Repeater";
     this.speedMultiplier = 1;
     this.reset(start);

@@ -81,6 +81,44 @@ const ENEMY_TYPES = {
     isBoss: true,
     sprite: makeSprite("/assets/images/enemies/archon-prime.png"),
   },
+  warden: {
+    id: "warden",
+    label: "MIRAGE WARDEN",
+    health: 420,
+    speed: 1.08,
+    color: "#00FFFF",
+    damage: 16,
+    meleeRange: 0.88,
+    rangedRange: 7.4,
+    preferredDistance: 5.1,
+    attackCooldown: 0.92,
+    projectileSpeed: 5.9,
+    projectileRadius: 0.13,
+    weaponLabel: "Mirror lance",
+    scoreValue: 2600,
+    size: 0.88,
+    isBoss: true,
+    sprite: makeSprite("/assets/images/enemies/archon-prime.png"),
+  },
+  seraph: {
+    id: "seraph",
+    label: "NULL SERAPH",
+    health: 640,
+    speed: 0.94,
+    color: "#39FF14",
+    damage: 24,
+    meleeRange: 1.04,
+    rangedRange: 8.8,
+    preferredDistance: 4.2,
+    attackCooldown: 0.98,
+    projectileSpeed: 5.8,
+    projectileRadius: 0.16,
+    weaponLabel: "Null choir",
+    scoreValue: 3400,
+    size: 0.98,
+    isBoss: true,
+    sprite: makeSprite("/assets/images/enemies/archon-prime.png"),
+  },
 };
 
 export class EnemyProjectile {
@@ -122,14 +160,19 @@ export class EnemyProjectile {
 }
 
 export class Enemy {
-  constructor(typeId, x, y, waveMultiplier = 1) {
+  constructor(typeId, x, y, waveMultiplier = 1, tuning = {}) {
     const config = ENEMY_TYPES[typeId];
+    const enemySpeedMultiplier = tuning.enemySpeedMultiplier || 1;
+    const enemyDamageMultiplier = tuning.enemyDamageMultiplier || 1;
+    const enemyHealthMultiplier = config.isBoss
+      ? (tuning.enemyHealthMultiplier || 1) * (tuning.bossHealthMultiplier || 1)
+      : (tuning.enemyHealthMultiplier || 1);
 
     this.type = config.id;
     this.label = config.label;
     this.color = config.color;
-    this.speed = config.speed * (1 + waveMultiplier * 0.03);
-    this.damage = Math.round(config.damage * (1 + waveMultiplier * 0.04));
+    this.speed = config.speed * (1 + waveMultiplier * 0.03) * enemySpeedMultiplier;
+    this.damage = Math.round(config.damage * (1 + waveMultiplier * 0.04) * enemyDamageMultiplier);
     this.meleeRange = config.meleeRange || 0;
     this.rangedRange = config.rangedRange || 0;
     this.preferredDistance = config.preferredDistance || Math.max(2.4, this.rangedRange * 0.52);
@@ -140,7 +183,7 @@ export class Enemy {
     this.scoreValue = config.scoreValue;
     this.size = config.size;
     this.sprite = config.sprite;
-    this.maxHealth = Math.round(config.health * (1 + waveMultiplier * 0.12));
+    this.maxHealth = Math.round(config.health * (1 + waveMultiplier * 0.12) * enemyHealthMultiplier);
     this.health = this.maxHealth;
     this.x = x;
     this.y = y;
@@ -343,7 +386,7 @@ function chooseType(index, wave) {
   return "hacker";
 }
 
-export function createWaveEnemies(spawnPoints, wave, countOverride = null) {
+export function createWaveEnemies(spawnPoints, wave, countOverride = null, tuning = {}) {
   const enemies = [];
   const count = countOverride ?? 3 + wave * 2;
 
@@ -351,14 +394,14 @@ export function createWaveEnemies(spawnPoints, wave, countOverride = null) {
     const spawn = spawnPoints[index % spawnPoints.length];
     const offset = (index % 2 === 0 ? 0.18 : -0.18) * ((index % 3) + 1) * 0.35;
     const type = chooseType(index, wave);
-    enemies.push(new Enemy(type, spawn.x + offset, spawn.y - offset, wave));
+    enemies.push(new Enemy(type, spawn.x + offset, spawn.y - offset, wave, tuning));
   }
 
   return enemies;
 }
 
-export function createBossEnemy(spawn, wave) {
-  return new Enemy("archon", spawn.x, spawn.y, Math.max(wave, 4));
+export function createBossEnemy(spawn, wave, bossId = "archon", tuning = {}) {
+  return new Enemy(bossId, spawn.x, spawn.y, Math.max(wave, 4), tuning);
 }
 
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -16,7 +16,7 @@
         <p>NEON HELL en movil se juega unicamente en horizontal para que entren el HUD, el joystick y los botones.</p>
       </div>
     </div>
-    <button class="global-back-button" id="btn-global-back" type="button" aria-label="Volver atras">← Volver</button>
+    <button class="global-back-button" id="btn-global-back" type="button" aria-label="Volver atras">&larr; Volver</button>
     <main class="app-shell">
       <section class="screen active splash-screen" id="screen-splash">
         <img class="splash-logo" src="/assets/images/neon-hell-splash-logo.png" alt="NEON HELL" />
@@ -24,17 +24,82 @@
       </section>
 
       <section class="screen" id="screen-menu">
-        <div class="hero-panel menu-grid">
-          <div>
+        <div class="hero-panel menu-shell">
+          <div class="menu-copy">
             <p class="eyebrow">Retro FPS // Synthwave Survival</p>
             <h1>NEON HELL</h1>
             <p class="hero-copy">
               Entra por Mision 1: Boot Bay, baja al Sector 13 y corta la brecha.
-              La cuenta es opcional: sirve para ranking, progreso y online.
+              La cuenta habilita ranking global, amigos y online.
             </p>
-            <div class="account-chip" id="account-chip">No conectado</div>
+            <div class="menu-status-row">
+              <div class="account-chip" id="account-chip">No conectado</div>
+              <div class="menu-label-strip">
+                <span>Campania</span>
+                <span>Ranking global</span>
+                <span>Squad online</span>
+              </div>
+            </div>
+            <article class="menu-hero-card art-card art-menu-hero">
+              <div class="menu-hero-copy">
+                <p class="eyebrow">Zona caliente</p>
+                <h2>Boot Bay</h2>
+                <p>
+                  Acceso frontal limpio, mejor lectura del arte y foco claro en la
+                  accion principal para arrancar rapido.
+                </p>
+              </div>
+            </article>
           </div>
-          <div class="menu-actions">
+          <div class="menu-command">
+            <article class="panel-card menu-progress-panel">
+              <div class="section-header compact-header">
+                <div>
+                  <p class="eyebrow">Cuenta // Progreso</p>
+                  <h3>Operaciones activas</h3>
+                </div>
+                <button class="neon-button alt tiny" id="btn-menu-onboarding">Primer minuto</button>
+              </div>
+              <div class="profile-summary" id="profile-summary"></div>
+              <div class="live-event-card" id="live-event-card"></div>
+              <div class="mission-columns">
+                <div>
+                  <p class="eyebrow">Diarias</p>
+                  <div class="mission-feed" id="daily-missions"></div>
+                </div>
+                <div>
+                  <p class="eyebrow">Semanales</p>
+                  <div class="mission-feed" id="weekly-missions"></div>
+                </div>
+              </div>
+              <div class="meta-columns">
+                <article class="panel-card compact meta-card" id="season-pass-card"></article>
+                <article class="panel-card compact meta-card">
+                  <p class="eyebrow">Logros</p>
+                  <h3>Objetivos largos</h3>
+                  <div class="social-feed" id="achievement-feed"></div>
+                </article>
+                <article class="panel-card compact meta-card">
+                  <p class="eyebrow">Cosmeticos</p>
+                  <h3>Identidad</h3>
+                  <div class="social-feed" id="cosmetic-feed"></div>
+                </article>
+              </div>
+            </article>
+            <article class="panel-card menu-onboarding-panel" id="menu-onboarding-panel"></article>
+            <div class="product-columns">
+              <article class="panel-card compact product-card" id="product-economy-card"></article>
+              <article class="panel-card compact product-card">
+                <p class="eyebrow">Tienda cosmética</p>
+                <h3>Rotación diaria</h3>
+                <div class="social-feed" id="store-feed"></div>
+              </article>
+              <article class="panel-card compact product-card">
+                <p class="eyebrow">Live ops</p>
+                <h3>Temporada y coop</h3>
+                <div class="social-feed" id="liveops-feed"></div>
+              </article>
+            </div>
             <div class="menu-showcase">
               <article class="art-card art-menu">
                 <span>SECTOR 13</span>
@@ -46,14 +111,18 @@
                 <span>ARCHON PRIME</span>
               </article>
             </div>
-            <button class="neon-button" id="btn-start">Mision 1 // Boot Bay</button>
-            <button class="neon-button alt" id="btn-online">Online</button>
-            <button class="neon-button alt" id="btn-ranking">Ranking global</button>
-            <button class="neon-button alt" id="btn-options">Opciones</button>
+            <div class="menu-actions">
+              <button class="neon-button menu-start-button" id="btn-start">Mision 1 // Boot Bay</button>
+              <div class="menu-button-grid">
+                <button class="neon-button alt" id="btn-online">Online</button>
+                <button class="neon-button alt" id="btn-ranking">Ranking global</button>
+                <button class="neon-button alt" id="btn-options">Opciones</button>
+                <button class="neon-button alt" id="btn-account">Login / Cuenta</button>
+              </div>
+            </div>
             <button class="neon-button ghost" id="btn-exit">Salir / volver</button>
           </div>
         </div>
-        <button class="neon-button alt menu-account-button" id="btn-account">Login / Cuenta</button>
       </section>
 
       <section class="screen mission-screen" id="screen-ftue">
@@ -66,6 +135,7 @@
               Primer descenso corto para calibrar movimiento, disparo, pickups y puertas.
             </p>
             <div class="ftue-steps mission-objectives" id="ftue-steps"></div>
+            <div class="ftue-benefits" id="ftue-benefits"></div>
           </article>
           <div class="mission-stack sr-only" id="ftue-missions"></div>
         </div>
@@ -82,11 +152,25 @@
             <p class="eyebrow">Online PvE // Escuadron</p>
             <h2>Equipo vs maquina</h2>
             <p class="hero-copy">
-              Crea una sala o entra con codigo. El host inicia la mision y el
-              equipo comparte presencia, disparos y estado de partida.
+              Crea una sala o entra con codigo. Configura nombre de squad,
+              activa horda cooperativa y compite por rewards y ranking de equipo.
             </p>
+            <div class="online-config-grid">
+              <label>
+                <span>Modo</span>
+                <select id="online-playlist">
+                  <option value="squad-horde" selected>Squad Horde</option>
+                  <option value="story-coop">Story Coop</option>
+                </select>
+              </label>
+              <label>
+                <span>Squad</span>
+                <input id="online-squad-name" maxlength="32" placeholder="Nombre del squad" />
+              </label>
+            </div>
             <div class="online-actions">
               <button class="neon-button" id="btn-online-create">Crear sala</button>
+              <button class="neon-button alt" id="btn-online-matchmake">Buscar squad</button>
               <div class="join-row">
                 <input id="online-room-code" maxlength="6" placeholder="CODIGO" />
                 <button class="neon-button alt" id="btn-online-join">Entrar</button>
@@ -95,12 +179,34 @@
               <button class="neon-button ghost" id="btn-online-back">Volver</button>
             </div>
           </div>
-          <article class="panel-card online-roster">
-            <p class="eyebrow">Sala</p>
-            <h3 id="online-room-title">Sin sala</h3>
-            <div class="online-status" id="online-status">Conectando socket...</div>
-            <div class="online-players" id="online-players"></div>
-          </article>
+          <div class="online-side-stack">
+            <article class="panel-card online-roster">
+              <p class="eyebrow">Sala</p>
+              <h3 id="online-room-title">Sin sala</h3>
+              <div class="online-status" id="online-status">Conectando socket...</div>
+              <div class="online-players" id="online-players"></div>
+            </article>
+            <article class="panel-card compact">
+              <p class="eyebrow">Rewards del squad</p>
+              <h3>Motivo para quedarse</h3>
+              <div class="social-feed" id="online-rewards-card"></div>
+            </article>
+            <article class="panel-card compact">
+              <p class="eyebrow">Top squads</p>
+              <h3>Ranking cooperativo</h3>
+              <div class="social-feed" id="squad-leaderboard-list"></div>
+            </article>
+            <article class="panel-card compact">
+              <p class="eyebrow">Tus squads</p>
+              <h3>Roles e invitaciones</h3>
+              <div class="social-feed" id="squad-management-list"></div>
+            </article>
+            <article class="panel-card compact">
+              <p class="eyebrow">Misiones coop</p>
+              <h3>Objetivos de equipo</h3>
+              <div class="social-feed" id="coop-mission-list"></div>
+            </article>
+          </div>
         </div>
       </section>
 
@@ -174,15 +280,55 @@
       </section>
 
       <section class="screen" id="screen-ranking">
-        <div class="hero-panel">
+        <div class="hero-panel ranking-shell">
           <div class="section-header">
             <div>
               <p class="eyebrow">Top 20 global</p>
               <h2>Ranking</h2>
+              <p class="hero-copy ranking-copy">
+                Jugadores registrados ordenados por mayor score. Puedes agregar amigos desde aqui.
+              </p>
             </div>
             <button class="neon-button ghost" id="btn-ranking-back">Volver</button>
           </div>
-          <div class="ranking-list" id="ranking-list"></div>
+          <div class="ranking-scope-switch">
+            <button class="neon-button alt tiny active" id="btn-ranking-global">Global</button>
+            <button class="neon-button alt tiny" id="btn-ranking-friends">Amigos</button>
+          </div>
+          <div class="ranking-layout">
+            <div>
+              <div class="ranking-table-head" aria-hidden="true">
+                <span>#</span>
+                <span>Usuario</span>
+                <span>Nivel</span>
+                <span>Mayor score</span>
+                <span>Agregar</span>
+              </div>
+              <div class="ranking-list" id="ranking-list"></div>
+            </div>
+            <aside class="ranking-side">
+              <article class="panel-card compact">
+                <p class="eyebrow">Comparar records</p>
+                <h3>Tu circulo</h3>
+                <div class="social-feed" id="friend-ranking-list"></div>
+              </article>
+              <article class="panel-card compact">
+                <p class="eyebrow">Retos directos</p>
+                <h3>Objetivos activos</h3>
+                <div class="social-feed" id="challenge-list"></div>
+              </article>
+              <article class="panel-card compact">
+                <p class="eyebrow">Historial</p>
+                <h3>Corridas recientes</h3>
+                <div class="social-feed" id="history-list"></div>
+              </article>
+              <article class="panel-card compact">
+                <p class="eyebrow">Notificaciones</p>
+                <h3>Actividad asincrónica</h3>
+                <div class="social-feed" id="notification-list"></div>
+              </article>
+            </aside>
+          </div>
         </div>
       </section>
 
@@ -247,7 +393,43 @@
               <div class="settings-actions">
                 <button class="neon-button alt" id="btn-options-controls">Ver controles</button>
                 <button class="neon-button alt" id="btn-options-lore">Data Vault</button>
+                <button class="neon-button alt" id="btn-options-admin">Admin live ops</button>
               </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-admin">
+        <div class="hero-panel options-layout">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Admin</p>
+              <h2>Live Ops Panel</h2>
+            </div>
+            <button class="neon-button ghost" id="btn-admin-back">Volver</button>
+          </div>
+          <div class="options-grid">
+            <article class="panel-card compact">
+              <p class="eyebrow">Acceso</p>
+              <h3>Token y clave</h3>
+              <div class="stack-form">
+                <input id="admin-token" type="password" placeholder="ADMIN_TOKEN" />
+                <select id="admin-config-key">
+                  <option value="coopMissions">Misiones coop</option>
+                  <option value="currentSeason">Temporada</option>
+                  <option value="storeRotation">Tienda</option>
+                  <option value="liveEvents">Eventos</option>
+                </select>
+                <button class="neon-button alt" id="btn-admin-load">Cargar analytics</button>
+                <button class="neon-button" id="btn-admin-save">Guardar JSON</button>
+              </div>
+            </article>
+            <article class="panel-card compact">
+              <p class="eyebrow">Configuracion</p>
+              <h3>JSON editable</h3>
+              <textarea id="admin-config-json" rows="12" placeholder='{"value":[]}'></textarea>
+              <div class="social-feed" id="admin-analytics-feed"></div>
             </article>
           </div>
         </div>
@@ -355,6 +537,7 @@
             />
             <button class="neon-button" id="btn-save-score">Guardar puntuacion</button>
           </div>
+          <div class="gameover-progress-summary" id="gameover-progress-summary"></div>
           <div class="footer-actions">
             <button class="neon-button" id="btn-retry">Jugar de nuevo</button>
             <button class="neon-button alt" id="btn-open-ranking">Ver ranking</button>
@@ -370,3 +553,4 @@
     <script type="module" src="/js/main.js"></script>
   </body>
 </html>
+

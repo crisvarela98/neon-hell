@@ -4,20 +4,20 @@ export const FTUE_STORAGE_KEY = "neon-hell-ftue-complete";
 
 export const FTUE_STEPS = [
   {
-    title: "Mision 1: Boot Bay",
-    body: "Primer descenso corto para calibrar movimiento, disparo, pickups y puertas sin friccion.",
+    title: "Primer minuto claro",
+    body: "Boot Bay ensena movimiento, disparo, pickups y puertas en una sola corrida corta.",
   },
   {
-    title: "Mision 2: Sector 13",
-    body: "Corredor de acceso con mas presion, drones y rutas para dominar el ritmo del combate.",
+    title: "Cuenta con progreso",
+    body: "Guardar score suma XP de cuenta, desbloquea clases de armas y activa mejoras permanentes.",
   },
   {
-    title: "Mision 3: Breach Core",
-    body: "Camara de fractura con oleadas pesadas y apariciones de ARCHON PRIME.",
+    title: "Retorno diario",
+    body: "Las misiones diarias y semanales te dan objetivos concretos cada vez que vuelves.",
   },
   {
-    title: "Online PvE opcional",
-    body: "Crea una sala por codigo cuando quieras jugar equipo contra maquina.",
+    title: "Social y online",
+    body: "Agrega amigos, compara records y lanza retos directos o salas PvE por codigo.",
   },
 ];
 

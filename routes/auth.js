@@ -3,8 +3,45 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/User");
+const { ensureUserProgression, buildProgressionPayload } = require("../services/progression");
+const { buildSocialDashboard } = require("../services/social");
 
 const router = express.Router();
+
+function readToken(request) {
+  const authorization = request.headers.authorization || "";
+  const [scheme, value] = authorization.split(" ");
+
+  if (scheme !== "Bearer" || !value) {
+    return null;
+  }
+
+  return value;
+}
+
+async function readAuthenticatedUser(request) {
+  if (!process.env.JWT_SECRET) {
+    return null;
+  }
+
+  const token = readToken(request);
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!payload?.sub) {
+      return null;
+    }
+
+    return User.findById(payload.sub);
+  } catch (error) {
+    return null;
+  }
+}
 
 function createToken(user) {
   return jwt.sign(
@@ -23,6 +60,7 @@ function sanitizeUser(user) {
     id: user._id.toString(),
     username: user.username,
     email: user.email,
+    friends: Array.isArray(user.friends) ? user.friends : [],
     lastLoginAt: user.lastLoginAt,
     createdAt: user.createdAt,
   };
@@ -77,9 +115,11 @@ router.post("/register", async (request, response) => {
       username: normalizedUsername,
       email: normalizedEmail,
       passwordHash,
+      friends: [],
       lastLoginAt: new Date(),
     });
 
+    ensureUserProgression(user);
     user.lastLoginAt = new Date();
     await user.save();
 
@@ -127,6 +167,10 @@ router.post("/login", async (request, response) => {
       return response.status(401).json({ message: "Credenciales invalidas." });
     }
 
+    ensureUserProgression(user);
+    user.lastLoginAt = new Date();
+    await user.save();
+
     const token = createToken(user);
 
     return response.json({
@@ -136,6 +180,82 @@ router.post("/login", async (request, response) => {
   } catch (error) {
     console.error("[auth] login failed:", error.message);
     return response.status(500).json({ message: "No se pudo iniciar sesion." });
+  }
+});
+
+router.get("/me", async (request, response) => {
+  try {
+    const user = await readAuthenticatedUser(request);
+
+    if (!user) {
+      return response.status(401).json({ message: "Sesion no valida." });
+    }
+
+    ensureUserProgression(user);
+    await user.save();
+    const social = await buildSocialDashboard(user);
+
+    return response.json({
+      user: sanitizeUser(user),
+      progression: buildProgressionPayload(user),
+      social: {
+        friendLeaderboard: social.friendLeaderboard,
+        history: social.history,
+        challenges: social.challenges,
+        squadLeaderboard: social.squadLeaderboard,
+        notifications: social.notifications,
+      },
+    });
+  } catch (error) {
+    return response.status(500).json({ message: "No se pudo cargar la sesion." });
+  }
+});
+
+router.post("/friends/:username", async (request, response) => {
+  try {
+    const user = await readAuthenticatedUser(request);
+
+    if (!user) {
+      return response.status(401).json({ message: "Inicia sesion para agregar amigos." });
+    }
+
+    const targetUsername = String(request.params.username || "").trim();
+
+    if (!isValidUsername(targetUsername)) {
+      return response.status(400).json({ message: "Usuario invalido." });
+    }
+
+    if (targetUsername === user.username) {
+      return response.status(400).json({ message: "No puedes agregarte a ti mismo." });
+    }
+
+    const targetUser = await User.findOne({ username: targetUsername });
+
+    if (!targetUser) {
+      return response.status(404).json({ message: "Ese jugador no tiene cuenta registrada." });
+    }
+
+    const currentFriends = Array.isArray(user.friends) ? user.friends : [];
+
+    if (currentFriends.includes(targetUser.username)) {
+      return response.json({
+        message: `${targetUser.username} ya esta en tus amigos.`,
+        user: sanitizeUser(user),
+      });
+    }
+
+    user.friends = [...new Set([...currentFriends, targetUser.username])];
+    ensureUserProgression(user);
+    await user.save();
+
+    return response.status(201).json({
+      message: `${targetUser.username} agregado a tus amigos.`,
+      user: sanitizeUser(user),
+      progression: buildProgressionPayload(user),
+    });
+  } catch (error) {
+    console.error("[auth] add friend failed:", error.message);
+    return response.status(500).json({ message: "No se pudo agregar el amigo." });
   }
 });
 

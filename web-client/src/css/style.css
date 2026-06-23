@@ -35,8 +35,29 @@ input {
   font: inherit;
 }
 
+textarea,
+select {
+  font: inherit;
+}
+
 button {
   min-height: 44px;
+}
+
+textarea,
+select {
+  width: 100%;
+  border: 1px solid rgba(0, 255, 255, 0.18);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.34);
+  color: #ffffff;
+  padding: 12px 14px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 220px;
+  line-height: 1.45;
 }
 
 .backdrop {
@@ -276,12 +297,219 @@ h2 {
   grid-template-columns: 1fr;
 }
 
-.menu-account-button {
-  position: fixed;
-  left: max(18px, env(safe-area-inset-left));
-  bottom: max(18px, env(safe-area-inset-bottom));
-  z-index: 30;
-  width: min(220px, calc(100vw - 36px));
+.menu-shell {
+  width: min(1180px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+  gap: 28px;
+  align-items: stretch;
+}
+
+.menu-copy,
+.menu-command {
+  position: relative;
+  z-index: 1;
+}
+
+.menu-copy {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+}
+
+.menu-command {
+  display: grid;
+  gap: 18px;
+}
+
+.compact-header {
+  align-items: start;
+}
+
+.menu-progress-panel,
+.menu-onboarding-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.menu-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.menu-label-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.menu-label-strip span {
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: var(--blue);
+  background: rgba(0, 255, 255, 0.08);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.menu-hero-card {
+  min-height: 310px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 24px;
+}
+
+.menu-hero-copy {
+  width: min(380px, 100%);
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+.menu-hero-copy h2,
+.menu-hero-copy p {
+  margin-bottom: 0;
+}
+
+.menu-hero-copy p:last-child {
+  color: rgba(235, 248, 255, 0.82);
+  line-height: 1.55;
+}
+
+.menu-button-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.menu-start-button {
+  min-height: 62px;
+  font-size: 1.08rem;
+}
+
+.profile-summary,
+.live-event-card,
+.mission-feed,
+.social-feed,
+.ftue-benefits {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profile-kpi,
+.mission-chip,
+.social-card,
+.event-card {
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(5, 18, 28, 0.58);
+}
+
+.profile-kpi span,
+.mission-chip span,
+.social-card span,
+.event-card span,
+.progress-bar-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.profile-kpi strong,
+.social-card strong,
+.event-card strong {
+  display: block;
+  margin-top: 6px;
+  color: #ffffff;
+}
+
+.progression-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.progression-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #00d9ff, #ff2f92);
+}
+
+.weapon-unlock-grid,
+.benefits-list,
+.mission-columns {
+  display: grid;
+  gap: 12px;
+}
+
+.weapon-unlock-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.weapon-chip {
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(18, 18, 20, 0.66);
+}
+
+.weapon-chip.locked {
+  opacity: 0.55;
+}
+
+.weapon-chip strong {
+  display: block;
+  color: #ffffff;
+}
+
+.weapon-chip span,
+.weapon-chip small {
+  display: block;
+  color: var(--muted);
+}
+
+.mission-chip.done {
+  border-color: rgba(57, 255, 20, 0.26);
+  background: rgba(57, 255, 20, 0.08);
+}
+
+.mission-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.event-card strong {
+  margin-bottom: 6px;
+}
+
+.benefits-list {
+  grid-template-columns: 1fr;
+}
+
+.benefit-item {
+  border-left: 3px solid rgba(0, 255, 255, 0.28);
+  padding-left: 12px;
+  color: #ebf8ff;
+  line-height: 1.5;
+}
+
+.art-menu-hero {
+  background-image:
+    linear-gradient(110deg, rgba(1, 3, 7, 0.04), rgba(1, 3, 7, 0.4) 40%, rgba(1, 3, 7, 0.88) 70%, rgba(1, 3, 7, 0.96)),
+    url("/assets/images/menu-hero-v2.png");
+  background-position: center;
 }
 
 .menu-showcase {
@@ -391,13 +619,15 @@ h2 {
 
 .art-card {
   position: relative;
-  min-height: 120px;
+  min-height: 132px;
   border-radius: 18px;
   overflow: hidden;
   border: 1px solid rgba(0, 255, 255, 0.18);
   background-size: cover;
   background-position: center;
-  box-shadow: inset 0 -60px 60px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    inset 0 -80px 80px rgba(0, 0, 0, 0.52),
+    0 20px 40px rgba(0, 0, 0, 0.24);
 }
 
 .art-card span {
@@ -448,36 +678,51 @@ h2 {
 }
 
 .neon-button {
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   min-height: 52px;
   padding: 15px 18px;
-  background: linear-gradient(135deg, var(--pink), var(--violet));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent),
+    linear-gradient(135deg, #ff2f92, #00d9ff);
   color: white;
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.1;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
-  box-shadow: 0 0 20px rgba(255, 0, 255, 0.32);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    border-color 0.18s ease,
+    filter 0.18s ease;
+  box-shadow:
+    0 10px 24px rgba(255, 0, 255, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .neon-button:hover,
 .neon-button:focus-visible {
   transform: translateY(-2px);
-  box-shadow: 0 0 26px rgba(255, 0, 255, 0.4);
+  box-shadow:
+    0 16px 32px rgba(255, 0, 255, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  filter: saturate(1.06);
 }
 
 .neon-button.alt {
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.18), rgba(0, 255, 255, 0.3));
-  border: 1px solid rgba(0, 255, 255, 0.4);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    linear-gradient(135deg, rgba(0, 255, 255, 0.12), rgba(0, 140, 255, 0.24));
+  border: 1px solid rgba(0, 255, 255, 0.24);
+  color: #dcfbff;
 }
 
 .neon-button.ghost {
-  background: transparent;
-  border: 1px solid rgba(0, 255, 255, 0.14);
+  background: rgba(1, 10, 18, 0.48);
+  border: 1px solid rgba(0, 255, 255, 0.12);
   box-shadow: none;
 }
 
@@ -519,19 +764,269 @@ h2 {
   margin-top: 24px;
 }
 
+.ranking-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.ranking-side {
+  display: grid;
+  gap: 16px;
+}
+
+.ranking-scope-switch {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.ranking-scope-switch .neon-button.active {
+  border-color: rgba(57, 255, 20, 0.28);
+  color: var(--acid);
+  box-shadow: 0 0 18px rgba(57, 255, 20, 0.16);
+}
+
+.ranking-table-head {
+  display: grid;
+  grid-template-columns: 82px 1.45fr 0.9fr 1fr 0.9fr;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 0 16px;
+  color: var(--blue);
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
 .ranking-item {
   display: grid;
-  grid-template-columns: 72px 1.3fr repeat(4, minmax(0, 1fr));
+  grid-template-columns: 82px 1.45fr 0.9fr 1fr 0.9fr;
   gap: 12px;
   align-items: center;
   border: 1px solid rgba(0, 255, 255, 0.12);
   border-radius: 16px;
   padding: 14px 16px;
-  background: rgba(18, 18, 20, 0.7);
+  background: linear-gradient(135deg, rgba(18, 18, 20, 0.86), rgba(8, 22, 31, 0.78));
 }
 
 .ranking-item strong {
   color: var(--blue);
+}
+
+.ranking-rank {
+  font-size: 1.18rem;
+}
+
+.ranking-user-cell,
+.ranking-action-cell {
+  display: grid;
+  gap: 4px;
+}
+
+.ranking-user-name {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.ranking-user-state,
+.ranking-stat-cell {
+  color: var(--muted);
+}
+
+.ranking-badge {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(57, 255, 20, 0.2);
+  color: var(--acid);
+  background: rgba(57, 255, 20, 0.08);
+  font-weight: 700;
+}
+
+.ranking-badge.muted {
+  border-color: rgba(0, 255, 255, 0.14);
+  color: var(--blue);
+  background: rgba(0, 255, 255, 0.08);
+}
+
+.ranking-add-button {
+  width: 100%;
+}
+
+.ranking-empty {
+  margin-top: 24px;
+}
+
+.ranking-copy {
+  margin-bottom: 0;
+}
+
+.social-card {
+  display: grid;
+  gap: 6px;
+}
+
+.social-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.social-card p,
+.mission-chip p,
+.event-card p {
+  margin-bottom: 0;
+}
+
+.social-score-delta {
+  color: var(--blue);
+  font-size: 0.82rem;
+}
+
+.ftue-benefits {
+  margin-top: 8px;
+}
+
+.gameover-progress-summary {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.meta-columns,
+.product-columns,
+.online-config-grid,
+.online-side-stack,
+.season-reward-strip {
+  display: grid;
+  gap: 16px;
+}
+
+.meta-columns,
+.product-columns {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+.meta-card,
+.product-card {
+  padding: 18px;
+}
+
+.season-reward-strip {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+}
+
+.reward-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 255, 255, 0.16);
+  color: var(--blue);
+  background: rgba(0, 255, 255, 0.06);
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.reward-pill.done {
+  border-color: rgba(57, 255, 20, 0.22);
+  color: var(--acid);
+  background: rgba(57, 255, 20, 0.08);
+}
+
+.online-layout {
+  grid-template-columns: 1.05fr 0.95fr;
+}
+
+.online-config-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 22px 0 18px;
+}
+
+.online-config-grid label {
+  display: grid;
+  gap: 8px;
+  color: var(--blue);
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.online-config-grid input,
+.online-config-grid select {
+  min-height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.34);
+  color: #ffffff;
+  padding: 12px 14px;
+}
+
+.online-side-stack {
+  align-content: start;
+}
+
+@media (max-width: 980px) {
+  .menu-shell,
+  .menu-grid,
+  .panel-columns,
+  .ftue-layout,
+  .online-layout,
+  .briefing-layout,
+  .lore-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-button-grid,
+  .menu-showcase,
+  .profile-summary,
+  .mission-columns,
+  .meta-columns,
+  .product-columns,
+  .ranking-layout,
+  .weapon-unlock-grid,
+  .online-config-grid,
+  .season-reward-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-hero-card {
+    min-height: 240px;
+  }
+
+  .ranking-table-head {
+    display: none;
+  }
+
+  .ranking-item {
+    grid-template-columns: 72px repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .ranking-rank {
+    grid-row: 1 / span 3;
+  }
+
+  .ranking-user-cell,
+  .ranking-action-cell {
+    grid-column: 2 / span 2;
+  }
+
+  .ranking-stat-cell,
+  .ranking-action-cell,
+  .ranking-user-cell {
+    min-width: 0;
+  }
 }
 
 .game-screen {

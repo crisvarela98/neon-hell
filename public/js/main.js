@@ -1,10 +1,23 @@
 import {
+  acceptSquadInvite,
+  addFriend,
   clearSession,
+  createChallenge,
+  fetchAdminAnalytics,
+  fetchLiveOps,
+  fetchProfile,
+  fetchProductDashboard,
+  fetchSquads,
+  fetchSquadLeaderboard,
   fetchTopScores,
   getSession,
   loginUser,
+  purchaseProduct,
   registerUser,
+  setSession,
   saveScore,
+  trackAnalytics,
+  updateAdminConfig,
 } from "./api.js";
 import { NeonAudio } from "./audio.js";
 import { getFtueState, markFtueComplete } from "./ftue.js";
@@ -34,6 +47,42 @@ let lastRunStats = null;
 let lastRunSaved = false;
 let socket = null;
 let onlineRoom = null;
+let dashboardProfile = null;
+let dashboardSocial = null;
+let dashboardProduct = null;
+let dashboardLiveOps = null;
+let dashboardSquads = null;
+let currentRankingScope = "global";
+
+function onlineConfigElements() {
+  return {
+    playlist: document.getElementById("online-playlist"),
+    squadName: document.getElementById("online-squad-name"),
+  };
+}
+
+function readOnlineConfig() {
+  const { playlist, squadName } = onlineConfigElements();
+  const playlistId = playlist?.value || "squad-horde";
+  const fallbackSquadName = `${currentUsername()} Squad`;
+
+  return {
+    playlistId,
+    squadName: (squadName?.value || "").trim().slice(0, 32) || fallbackSquadName,
+  };
+}
+
+function syncOnlineConfigInputs(room = null) {
+  const { playlist, squadName } = onlineConfigElements();
+
+  if (playlist) {
+    playlist.value = room?.playlistId || playlist.value || "squad-horde";
+  }
+
+  if (squadName) {
+    squadName.value = room?.squadName || squadName.value || `${currentUsername()} Squad`;
+  }
+}
 
 function requestLandscapeMode() {
   const isTouchMobile = window.matchMedia?.("(hover: none) and (pointer: coarse)")?.matches;
@@ -50,7 +99,15 @@ function currentUsername() {
   return getSession()?.user?.username || "Operador";
 }
 
+function currentUser() {
+  return getSession()?.user || null;
+}
+
 function goToMenu({ replace = true } = {}) {
+  ui.renderDashboard({ user: currentUser(), progression: dashboardProfile });
+  ui.renderProductDashboard(dashboardProduct);
+  ui.renderLiveOps(dashboardLiveOps);
+  ui.renderSquads(dashboardSquads);
   ui.showScreen("menu", { replace });
 }
 
@@ -130,14 +187,102 @@ function openOptions() {
   ui.showScreen("options");
 }
 
+function openAdmin() {
+  ui.showScreen("admin");
+}
+
+async function loadAdminAnalytics() {
+  const token = document.getElementById("admin-token").value.trim();
+  const feed = document.getElementById("admin-analytics-feed");
+
+  try {
+    const payload = await fetchAdminAnalytics(token);
+    feed.innerHTML = `
+      <article class="social-card">
+        <strong>Funnel 30d</strong>
+        <span>Registro ${payload.funnel.registration} // Compra ${payload.funnel.purchase}</span>
+        <p>D1 ${payload.funnel.d1Return} // D7 ${payload.funnel.d7Return} // Churn ${payload.funnel.churnRisk}</p>
+      </article>
+      ${(payload.events || []).slice(0, 8).map((event) => `
+        <article class="social-card">
+          <strong>${event.type}</strong>
+          <span>${event.count} eventos // ${event.uniqueUsers} usuarios</span>
+        </article>
+      `).join("")}
+    `;
+  } catch (error) {
+    ui.showToast(error.message);
+  }
+}
+
+async function saveAdminConfig() {
+  const token = document.getElementById("admin-token").value.trim();
+  const key = document.getElementById("admin-config-key").value;
+  const raw = document.getElementById("admin-config-json").value.trim();
+
+  try {
+    const value = raw ? JSON.parse(raw) : {};
+    await updateAdminConfig(token, key, value);
+    dashboardLiveOps = await fetchLiveOps();
+    ui.renderLiveOps(dashboardLiveOps);
+    ui.showToast("Live ops actualizado.");
+  } catch (error) {
+    ui.showToast(error.message);
+  }
+}
+
 async function openRanking() {
   try {
     ui.showScreen("ranking");
+    ui.setRankingScope(currentRankingScope);
     ui.renderRanking([]);
-    const scores = await fetchTopScores();
+    ui.renderSocialDashboard(dashboardSocial || {});
+    const scores = await fetchTopScores(currentRankingScope);
     ui.renderRanking(scores);
   } catch (error) {
     ui.showToast(error.message);
+  }
+}
+
+async function handleRankingClick(event) {
+  const button = event.target.closest("[data-add-friend]");
+  const challengeButton = event.target.closest("[data-challenge-friend]");
+
+  if (!button && !challengeButton) {
+    return;
+  }
+
+  const user = requireLoggedUser();
+
+  if (!user) {
+    return;
+  }
+
+  const username = button?.dataset.addFriend || challengeButton?.dataset.challengeFriend;
+
+  if (!username) {
+    return;
+  }
+
+  const activeButton = button || challengeButton;
+  activeButton.disabled = true;
+
+  try {
+    if (button) {
+      const payload = await addFriend(username);
+      ui.updateAccount(payload.user);
+      ui.showToast(payload.message || `${username} agregado.`);
+    } else {
+      const payload = await createChallenge(username);
+      ui.showToast(payload.message || `Reto activo contra ${username}.`);
+    }
+
+    await refreshDashboard();
+    await openRanking();
+  } catch (error) {
+    ui.showToast(error.message);
+  } finally {
+    activeButton.disabled = false;
   }
 }
 
@@ -148,7 +293,10 @@ function startGame() {
   audio.unlock().catch(() => {});
   audio.startMusic();
   ui.showScreen("game");
-  game.start(currentUsername());
+  game.start(currentUsername(), {
+    progression: dashboardProfile,
+    liveEvent: dashboardProfile?.liveEvent,
+  });
 }
 
 function startFtueMission() {
@@ -163,7 +311,7 @@ function requireLoggedUser() {
     return session.user;
   }
 
-  ui.showToast("Crea cuenta o inicia sesion para online.");
+  ui.showToast("Crea cuenta o inicia sesion para progreso, amigos y online.");
   ui.showScreen("auth");
   return null;
 }
@@ -204,27 +352,108 @@ function emitWithAck(eventName, payload) {
 function applyOnlineRoom(room) {
   onlineRoom = room;
   const isHost = room?.players?.some((player) => player.id === socket?.id && player.isHost) || false;
+  syncOnlineConfigInputs(room);
   ui.updateOnlineLobby({
     roomCode: room?.code || "",
     status: room?.status || "offline",
     players: room?.players || [],
     isHost,
+    playlistId: room?.playlistId || "squad-horde",
+    squadName: room?.squadName || "",
+    rewardLabel: room?.rewardLabel || "",
   });
   game.syncOnlineRoom(room, socket?.id);
 }
 
-function openOnline() {
+async function openOnline() {
   if (!requireLoggedUser()) {
     return;
   }
 
+  syncOnlineConfigInputs(onlineRoom);
   ui.showScreen("online");
   ui.updateOnlineLobby({
     roomCode: onlineRoom?.code || "",
     status: socket?.connected ? "Socket listo" : "Socket offline",
     players: onlineRoom?.players || [],
     isHost: onlineRoom?.players?.some((player) => player.id === socket?.id && player.isHost),
+    playlistId: onlineRoom?.playlistId || readOnlineConfig().playlistId,
+    squadName: onlineRoom?.squadName || readOnlineConfig().squadName,
+    rewardLabel: onlineRoom?.rewardLabel || "",
   });
+
+  try {
+    const [payload, squads, liveOps] = await Promise.all([
+      fetchSquadLeaderboard(),
+      fetchSquads(),
+      fetchLiveOps(),
+    ]);
+    dashboardSocial = {
+      ...(dashboardSocial || {}),
+      squadLeaderboard: payload.squads || [],
+    };
+    dashboardSquads = squads;
+    dashboardLiveOps = liveOps;
+    ui.renderSocialDashboard(dashboardSocial);
+    ui.renderSquads(squads);
+    ui.renderLiveOps(liveOps);
+  } catch (error) {
+    ui.showToast(error.message);
+  }
+}
+
+async function refreshDashboard({ silent = true } = {}) {
+  const session = getSession();
+
+  if (!session?.token) {
+    dashboardProfile = null;
+    dashboardSocial = null;
+    dashboardProduct = null;
+    dashboardLiveOps = null;
+    dashboardSquads = null;
+    ui.updateAccount(null);
+    ui.renderDashboard({ user: null, progression: null });
+    ui.renderSocialDashboard({});
+    ui.renderProductDashboard(null);
+    ui.renderLiveOps(null);
+    ui.renderSquads(null);
+    return null;
+  }
+
+  try {
+    const [payload, product, liveOps, squads] = await Promise.all([
+      fetchProfile(),
+      fetchProductDashboard(),
+      fetchLiveOps(),
+      fetchSquads(),
+    ]);
+    const session = getSession();
+
+    if (session?.token) {
+      setSession({
+        ...session,
+        user: payload.user,
+      });
+    }
+
+    dashboardProfile = payload.progression;
+    dashboardSocial = payload.social;
+    dashboardProduct = product;
+    dashboardLiveOps = liveOps;
+    dashboardSquads = squads;
+    ui.updateAccount(payload.user);
+    ui.renderDashboard({ user: payload.user, progression: payload.progression });
+    ui.renderSocialDashboard(payload.social);
+    ui.renderProductDashboard(product);
+    ui.renderLiveOps(liveOps);
+    ui.renderSquads(squads);
+    return payload;
+  } catch (error) {
+    if (!silent) {
+      ui.showToast(error.message);
+    }
+    return null;
+  }
 }
 
 async function createOnlineRoom() {
@@ -235,7 +464,10 @@ async function createOnlineRoom() {
   }
 
   try {
-    const response = await emitWithAck("online:create", { username: user.username });
+    const response = await emitWithAck("online:create", {
+      username: user.username,
+      ...readOnlineConfig(),
+    });
     applyOnlineRoom(response.room);
     ui.showToast(`Sala ${response.room.code} creada.`);
   } catch (error) {
@@ -281,6 +513,44 @@ async function requestOnlineStart() {
   }
 }
 
+async function requestMatchmaking() {
+  const user = requireLoggedUser();
+
+  if (!user) {
+    return;
+  }
+
+  try {
+    const response = await emitWithAck("online:matchmake", { username: user.username });
+    applyOnlineRoom(response.room);
+    ui.showToast(`Matchmaking listo: sala ${response.room.code}.`);
+  } catch (error) {
+    ui.showToast(error.message);
+  }
+}
+
+async function syncOnlineRoomConfig() {
+  if (!onlineRoom?.code) {
+    return;
+  }
+
+  const isHost = onlineRoom?.players?.some((player) => player.id === socket?.id && player.isHost);
+
+  if (!isHost) {
+    return;
+  }
+
+  try {
+    const response = await emitWithAck("online:configure", {
+      code: onlineRoom.code,
+      ...readOnlineConfig(),
+    });
+    applyOnlineRoom(response.room);
+  } catch (error) {
+    ui.showToast(error.message);
+  }
+}
+
 function startOnlineGame(room) {
   requestLandscapeMode();
   applyOnlineRoom(room);
@@ -292,6 +562,11 @@ function startOnlineGame(room) {
   game.start(currentUsername(), {
     onlineMode: true,
     roomCode: room.code,
+    playlistId: room.playlistId,
+    squadName: room.squadName,
+    onlineRoom: room,
+    progression: dashboardProfile,
+    liveEvent: dashboardProfile?.liveEvent,
   });
   game.syncOnlineRoom(room, socket?.id);
 }
@@ -322,15 +597,79 @@ async function handleSaveScore() {
 
   try {
     const username = ui.scoreUsername.value.trim() || currentUsername();
-    await saveScore({
+    const payload = await saveScore({
       ...lastRunStats,
       username,
     });
+    trackAnalytics("score_saved", {
+      score: lastRunStats.score,
+      wave: lastRunStats.wave,
+      onlineMode: Boolean(lastRunStats.onlineMode),
+    }).catch(() => {});
     lastRunSaved = true;
-    ui.showToast("Puntuacion guardada.");
-    await openRanking();
+    ui.renderPostRunProgress(payload?.progression ? payload : null);
+
+    if (payload?.progression) {
+      dashboardProfile = payload.progression;
+    }
+
+    if (payload?.surpassedFriends?.length) {
+      ui.showToast(`Superaste a ${payload.surpassedFriends.join(", ")}.`);
+    } else if (payload?.unlockedAchievements?.length) {
+      ui.showToast(`Logro: ${payload.unlockedAchievements[0].title}.`);
+    } else if (payload?.seasonTierUp) {
+      ui.showToast(`Tier ${payload.newSeasonTier} del pase desbloqueado.`);
+    } else if (payload?.completedChallenges?.length) {
+      ui.showToast("Reto completado.");
+    } else if (payload?.progression) {
+      ui.showToast("Puntuacion guardada y progreso actualizado.");
+    } else {
+      ui.showToast("Puntuacion guardada. Crea cuenta para sumar progreso.");
+    }
+
+    await refreshDashboard();
   } catch (error) {
     ui.showToast(error.message);
+  }
+}
+
+async function handleProductAction(event) {
+  const purchaseButton = event.target.closest("[data-purchase-product]");
+  const acceptButton = event.target.closest("[data-accept-squad]");
+
+  if (!purchaseButton && !acceptButton) {
+    return;
+  }
+
+  if (!requireLoggedUser()) {
+    return;
+  }
+
+  const activeButton = purchaseButton || acceptButton;
+  activeButton.disabled = true;
+
+  try {
+    if (purchaseButton) {
+      const payload = await purchaseProduct(purchaseButton.dataset.purchaseProduct);
+      dashboardProduct = payload.product;
+      dashboardProfile = payload.progression;
+      ui.renderProductDashboard(payload.product);
+      ui.renderDashboard({ user: currentUser(), progression: payload.progression });
+      ui.showToast(payload.message || "Compra completada.");
+      trackAnalytics("purchase_success", {
+        itemId: purchaseButton.dataset.purchaseProduct,
+      }).catch(() => {});
+    } else {
+      const payload = await acceptSquadInvite(acceptButton.dataset.acceptSquad);
+      ui.showToast(payload.message || "Invitacion aceptada.");
+      const squads = await fetchSquads();
+      dashboardSquads = squads;
+      ui.renderSquads(squads);
+    }
+  } catch (error) {
+    ui.showToast(error.message);
+  } finally {
+    activeButton.disabled = false;
   }
 }
 
@@ -341,10 +680,18 @@ function bindMenu() {
 
   window.addEventListener("pointerdown", unlockAudio, { once: true });
   window.addEventListener("keydown", unlockAudio, { once: true });
-  document.getElementById("btn-start").addEventListener("click", openBriefing);
+  document.getElementById("btn-start").addEventListener("click", () => {
+    if (!getFtueState().complete) {
+      openFtue();
+      return;
+    }
+
+    openBriefing();
+  });
   document.getElementById("btn-online").addEventListener("click", openOnline);
   document.getElementById("btn-ranking").addEventListener("click", openRanking);
   document.getElementById("btn-account").addEventListener("click", () => ui.showScreen("auth"));
+  document.getElementById("btn-menu-onboarding").addEventListener("click", openFtue);
   document.getElementById("btn-options").addEventListener("click", openOptions);
   document.getElementById("btn-exit").addEventListener("click", () => ui.showToast("NEON HELL listo para otra corrida."));
   document.getElementById("btn-ftue-start").addEventListener("click", startFtueMission);
@@ -352,9 +699,12 @@ function bindMenu() {
   document.getElementById("btn-global-back").addEventListener("click", navigateBack);
   document.getElementById("btn-ftue-back").addEventListener("click", () => goToMenu());
   document.getElementById("btn-online-create").addEventListener("click", createOnlineRoom);
+  document.getElementById("btn-online-matchmake").addEventListener("click", requestMatchmaking);
   document.getElementById("btn-online-join").addEventListener("click", joinOnlineRoom);
   document.getElementById("btn-online-start").addEventListener("click", requestOnlineStart);
   document.getElementById("btn-online-back").addEventListener("click", () => goToMenu());
+  document.getElementById("online-playlist").addEventListener("change", syncOnlineRoomConfig);
+  document.getElementById("online-squad-name").addEventListener("change", syncOnlineRoomConfig);
   document.getElementById("btn-deploy").addEventListener("click", startGame);
   document.getElementById("btn-briefing-back").addEventListener("click", () => goToMenu());
   document.getElementById("btn-lore-back").addEventListener("click", () => goToMenu());
@@ -364,6 +714,10 @@ function bindMenu() {
   document.getElementById("btn-options-back").addEventListener("click", () => goToMenu());
   document.getElementById("btn-options-controls").addEventListener("click", () => ui.showScreen("controls"));
   document.getElementById("btn-options-lore").addEventListener("click", openLore);
+  document.getElementById("btn-options-admin").addEventListener("click", openAdmin);
+  document.getElementById("btn-admin-back").addEventListener("click", openOptions);
+  document.getElementById("btn-admin-load").addEventListener("click", loadAdminAnalytics);
+  document.getElementById("btn-admin-save").addEventListener("click", saveAdminConfig);
   document.getElementById("btn-toggle-music").addEventListener("click", () => {
     audio.setMusicEnabled(!audio.getSettings().musicEnabled);
     updateAudioOptionButtons();
@@ -379,13 +733,35 @@ function bindMenu() {
   document.getElementById("btn-open-ranking").addEventListener("click", openRanking);
   document.getElementById("btn-back-menu").addEventListener("click", () => goToMenu());
   document.getElementById("btn-save-score").addEventListener("click", handleSaveScore);
+  ui.rankingList.addEventListener("click", handleRankingClick);
+  document.getElementById("friend-ranking-list").addEventListener("click", handleRankingClick);
+  document.getElementById("store-feed")?.addEventListener("click", handleProductAction);
+  document.getElementById("squad-management-list")?.addEventListener("click", handleProductAction);
+  document.getElementById("btn-ranking-global").addEventListener("click", () => {
+    currentRankingScope = "global";
+    openRanking();
+  });
+  document.getElementById("btn-ranking-friends").addEventListener("click", () => {
+    currentRankingScope = "friends";
+    openRanking();
+  });
   document.getElementById("btn-continue-mission").addEventListener("click", () => {
     ui.hideMissionComplete();
     game.continueMission();
   });
   document.getElementById("btn-logout").addEventListener("click", () => {
     clearSession();
+    dashboardProfile = null;
+    dashboardSocial = null;
+    dashboardProduct = null;
+    dashboardLiveOps = null;
+    dashboardSquads = null;
     ui.updateAccount(null);
+    ui.renderDashboard({ user: null, progression: null });
+    ui.renderSocialDashboard({});
+    ui.renderProductDashboard(null);
+    ui.renderLiveOps(null);
+    ui.renderSquads(null);
     ui.showToast("Sesion cerrada.");
   });
 }
@@ -401,7 +777,9 @@ function bindForms() {
         password: formData.get("password"),
       });
       ui.updateAccount(session.user);
+      await refreshDashboard();
       ui.showToast("Sesion iniciada.");
+      trackAnalytics("login_success").catch(() => {});
       goToMenu();
       event.currentTarget.reset();
     } catch (error) {
@@ -420,7 +798,9 @@ function bindForms() {
         password: formData.get("password"),
       });
       ui.updateAccount(session.user);
-      ui.showToast("Cuenta creada. Ya podes jugar Mision 1.");
+      await refreshDashboard();
+      ui.showToast("Cuenta creada. Ya puedes empezar a progresar.");
+      trackAnalytics("register_success").catch(() => {});
       goToMenu();
       event.currentTarget.reset();
     } catch (error) {
@@ -434,7 +814,13 @@ function boot() {
   bindForms();
   installBrowserBackGuard();
   ui.updateAccount(getSession()?.user || null);
+  ui.renderDashboard({ user: currentUser(), progression: null });
+  ui.renderSocialDashboard({});
+  ui.renderProductDashboard(null);
+  ui.renderLiveOps(null);
+  ui.renderSquads(null);
   updateAudioOptionButtons();
+  refreshDashboard();
 
   if (window.io) {
     socket = window.io();

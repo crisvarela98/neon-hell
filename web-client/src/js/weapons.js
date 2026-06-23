@@ -30,9 +30,12 @@ export class WeaponSystem {
     this.currentColor = "#00FFFF";
     this.weaponOrder = ["repeater", "shotgun", "carbine", "hellburst"];
     this.currentWeapon = this.weaponOrder[0];
+    this.unlockedWeapons = new Set([this.currentWeapon]);
     this.configs = {
       repeater: {
         name: "Volt Repeater",
+        classLabel: "Vanguardia",
+        unlockLevel: 1,
         ammoKey: "ammo",
         ammoLabel: "Cells",
         damage: 18,
@@ -60,6 +63,8 @@ export class WeaponSystem {
       },
       shotgun: {
         name: "Shard Shotgun",
+        classLabel: "Breacher",
+        unlockLevel: 2,
         ammoKey: "shellAmmo",
         ammoLabel: "Shells",
         damage: 15,
@@ -89,6 +94,8 @@ export class WeaponSystem {
       },
       carbine: {
         name: "Rift Carbine",
+        classLabel: "Precision",
+        unlockLevel: 4,
         ammoKey: "ammo",
         ammoLabel: "Cells",
         damage: 92,
@@ -117,6 +124,8 @@ export class WeaponSystem {
       },
       hellburst: {
         name: "Hellburst",
+        classLabel: "Demolicion",
+        unlockLevel: 6,
         ammoKey: "altAmmo",
         ammoLabel: "Cores",
         damage: 132,
@@ -147,9 +156,22 @@ export class WeaponSystem {
   }
 
   attachToPlayer(player) {
+    if (!this.unlockedWeapons.has(this.currentWeapon)) {
+      this.currentWeapon = this.weaponOrder.find((weaponId) => this.unlockedWeapons.has(weaponId)) || "repeater";
+    }
+
     const config = this.getCurrentConfig();
-    player.weaponName = config.name;
+    player.weaponName = `${config.name} // ${config.classLabel}`;
     this.currentColor = config.color;
+  }
+
+  setUnlockedWeapons(weaponIds = []) {
+    const normalized = weaponIds.filter((weaponId) => this.weaponOrder.includes(weaponId));
+    this.unlockedWeapons = new Set(normalized.length ? normalized : ["repeater"]);
+
+    if (!this.unlockedWeapons.has(this.currentWeapon)) {
+      this.currentWeapon = normalized[0] || "repeater";
+    }
   }
 
   getCurrentConfig() {
@@ -184,19 +206,26 @@ export class WeaponSystem {
   }
 
   switchWeapon(game) {
-    const currentIndex = this.weaponOrder.indexOf(this.currentWeapon);
-    this.currentWeapon = this.weaponOrder[(currentIndex + 1) % this.weaponOrder.length];
+    const unlockedOrder = this.weaponOrder.filter((weaponId) => this.unlockedWeapons.has(weaponId));
+
+    if (unlockedOrder.length <= 1) {
+      game.pushAlert("Necesitas subir de nivel para desbloquear mas clases.");
+      return;
+    }
+
+    const currentIndex = unlockedOrder.indexOf(this.currentWeapon);
+    this.currentWeapon = unlockedOrder[(currentIndex + 1) % unlockedOrder.length];
     const config = this.getCurrentConfig();
-    game.player.weaponName = config.name;
+    game.player.weaponName = `${config.name} // ${config.classLabel}`;
     this.currentColor = config.color;
     game.audio?.playSwapWeapon();
-    game.pushAlert(`Arma activa: ${config.name}.`);
+    game.pushAlert(`Clase activa: ${config.classLabel} // ${config.name}.`);
   }
 
   shoot(game) {
     const player = game.player;
     const config = this.getCurrentConfig();
-    const rapidModifier = game.activeEffects.overclock > 0 ? 0.72 : 1;
+    const rapidModifier = (game.activeEffects.overclock > 0 ? 0.72 : 1) * game.getFireRateModifier();
 
     if (this.cooldown > 0) {
       return;

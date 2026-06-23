@@ -1,5 +1,6 @@
 ﻿import { getLevelSequence } from "./levels.js";
 import { Player } from "./player.js";
+import { chooseRunMutator } from "./meta.js";
 import { createBossEnemy, createWaveEnemies } from "./enemies.js";
 import { WeaponSystem } from "./weapons.js";
 import { renderScene } from "./raycaster.js";
@@ -54,6 +55,9 @@ export class NeonHellGame {
     this.remotePlayers = new Map();
     this.onlineMode = false;
     this.onlineRoomCode = "";
+    this.onlinePlaylistId = "solo";
+    this.onlineSquadName = "";
+    this.onlineRoom = null;
     this.onlineStateTimer = 0;
     this.bindInputs();
     this.resizeCanvas();
@@ -315,13 +319,20 @@ export class NeonHellGame {
     this.levelIndex = 0;
     this.levelWave = 0;
     this.totalWave = 0;
-    this.player = new Player(this.levelSequence[0].playerStart);
+    this.progression = options.progression || null;
+    this.liveEvent = options.liveEvent || null;
+    this.bossKills = 0;
+    this.player = new Player(this.levelSequence[0].playerStart, this.getPlayerStartModifiers());
     this.playerName = playerName;
     this.onlineMode = Boolean(options.onlineMode);
     this.onlineRoomCode = options.roomCode || "";
+    this.onlinePlaylistId = options.playlistId || (this.onlineMode ? "squad-horde" : "solo");
+    this.onlineSquadName = options.squadName || "";
+    this.onlineRoom = options.onlineRoom || null;
     this.remotePlayers = new Map();
     this.onlineStateTimer = 0;
     this.weapon = new WeaponSystem();
+    this.weapon.setUnlockedWeapons(this.resolveUnlockedWeapons());
     this.weapon.attachToPlayer(this.player);
     this.enemies = [];
     this.projectiles = [];
@@ -337,7 +348,9 @@ export class NeonHellGame {
     };
     this.alert = this.onlineMode
       ? `Escuadron conectado en sala ${this.onlineRoomCode}.`
-      : "Entrando al sector.";
+      : this.liveEvent?.title
+        ? `Evento activo: ${this.liveEvent.title}.`
+        : "Entrando al sector.";
     this.gameOver = false;
     this.missionCompletePending = false;
     this.running = true;
@@ -458,7 +471,8 @@ export class NeonHellGame {
       : null;
 
     this.level = nextLevel;
-    this.player = new Player(this.level.playerStart);
+    this.activeMutator = chooseRunMutator(this.level, this.liveEvent);
+    this.player = new Player(this.level.playerStart, this.getPlayerStartModifiers());
     this.weapon.attachToPlayer(this.player);
 
     if (previousStats) {
@@ -470,7 +484,8 @@ export class NeonHellGame {
       this.player.kills = previousStats.kills;
       this.player.timeSurvived = previousStats.timeSurvived;
       this.player.wave = previousStats.wave;
-      this.player.weaponName = this.weapon.configs[this.weapon.currentWeapon].name;
+      const config = this.weapon.configs[this.weapon.currentWeapon];
+      this.player.weaponName = `${config.name} // ${config.classLabel}`;
     }
 
     this.projectiles = [];
@@ -488,32 +503,45 @@ export class NeonHellGame {
     this.totalWave += 1;
     this.levelWave += 1;
     this.waveDelay = 0;
+    const waveAmmoReward = Math.round(this.level.waveRewardAmmo * this.getWaveAmmoMultiplier());
 
     if (!initial) {
       this.player.heal(this.level.waveRewardHealth);
-      this.player.addAmmo(this.level.waveRewardAmmo);
-      this.player.score += this.totalWave * 40;
+      this.player.addAmmo(waveAmmoReward);
+      this.player.score += Math.round(this.totalWave * 40 * this.getScoreMultiplier());
       this.spawnWavePickups();
     }
 
     const isBossWave =
-      this.level.id === "breach-core" &&
-      (this.levelWave === 1 || this.levelWave % 4 === 0);
+      this.level.id !== "training-bay" &&
+      (this.levelWave === this.level.wavesUntilAdvance || this.levelWave % 4 === 0);
 
     if (isBossWave) {
       const bossSpawn = this.level.spawnPoints[0];
-      const boss = createBossEnemy(bossSpawn, this.totalWave);
+      const boss = createBossEnemy(
+        bossSpawn,
+        this.totalWave,
+        this.level.bossId,
+        this.getEnemyTuning(),
+      );
       const escort = createWaveEnemies(
         this.level.spawnPoints.slice(1),
         Math.max(2, this.totalWave - 1),
         Math.min(5, 2 + this.levelWave),
+        this.getEnemyTuning(),
       );
       this.enemies = [boss, ...escort];
       this.pushAlert(`Boss wave ${this.totalWave}: ${boss.label}.`);
       this.audio?.playBossAlert();
     } else {
-      this.enemies = createWaveEnemies(this.level.spawnPoints, this.totalWave);
-      this.pushAlert(`Wave ${this.totalWave} iniciada en ${this.level.name}.`);
+      const enemyCount = Math.max(3, Math.round((3 + this.totalWave * 2) * this.getEnemyCountMultiplier()));
+      this.enemies = createWaveEnemies(
+        this.level.spawnPoints,
+        this.totalWave,
+        enemyCount,
+        this.getEnemyTuning(),
+      );
+      this.pushAlert(`Wave ${this.totalWave} iniciada en ${this.level.name} // ${this.activeMutator.title}.`);
     }
 
     this.audio?.playWaveStart();
@@ -584,8 +612,19 @@ export class NeonHellGame {
       username: this.playerName,
       score: this.player.score,
       kills: this.player.kills,
+      bossKills: this.bossKills,
       wave: this.totalWave,
       timeSurvived: Math.round(this.player.timeSurvived),
+      biomeId: this.level.biome,
+      eventId: this.liveEvent?.id || "",
+      mutatorId: this.activeMutator?.id || "",
+      onlineMode: this.onlineMode,
+      playlistId: this.onlinePlaylistId,
+      roomCode: this.onlineRoomCode,
+      squadKey: this.onlineRoom?.squadKey || "",
+      squadName: this.onlineSquadName,
+      squadMembers: this.getSquadMembers(),
+      teamScore: this.getTeamScore(),
     });
   }
 
@@ -620,6 +659,10 @@ export class NeonHellGame {
     return this.activeEffects.fury > 0 ? 1.65 : 1;
   }
 
+  getFireRateModifier() {
+    return this.activeMutator?.modifiers?.fireRateMultiplier || 1;
+  }
+
   getBoostLabel() {
     const active = [];
 
@@ -651,36 +694,61 @@ export class NeonHellGame {
       return "Solo";
     }
 
-    return `${this.onlineRoomCode} // ${this.remotePlayers.size + 1} ops`;
+    return `${this.onlineRoomCode} // ${this.remotePlayers.size + 1} ops // ${this.onlinePlaylistId === "squad-horde" ? "Horda" : "Online"}`;
+  }
+
+  getSquadMembers() {
+    if (!this.onlineRoom?.players?.length) {
+      return [this.playerName];
+    }
+
+    return [...new Set(this.onlineRoom.players.map((player) => player.username).filter(Boolean))];
+  }
+
+  getTeamScore() {
+    if (!this.onlineMode) {
+      return this.player.score;
+    }
+
+    let total = this.player.score;
+
+    this.remotePlayers.forEach((player) => {
+      total += Math.max(0, Number(player.score) || 0);
+    });
+
+    return total;
   }
 
   getObjectiveState() {
     const boss = this.enemies.find((enemy) => enemy.isBoss && !enemy.dead);
+    const biomeLabel = this.level?.biomeLabel || this.level?.biome || "Sector";
+    const eventLabel = this.liveEvent?.title ? `Evento: ${this.liveEvent.title}.` : "";
+    const mutatorLabel = this.activeMutator?.title ? `Mutador: ${this.activeMutator.title}.` : "";
 
     if (this.level.id === "training-bay") {
       return {
         title: "Mision 1: limpia Boot Bay.",
-        detail: "Elimina la oleada. Cuando no queden enemigos, aparecera el boton Continuar.",
+        detail: `${biomeLabel}. ${eventLabel} ${mutatorLabel} Elimina la oleada y aparece Continuar.`,
       };
     }
 
     if (this.level.id === "sector13") {
       return {
         title: "Mision 2: asegura Sector 13.",
-        detail: `Oleadas completadas: ${Math.min(this.levelWave, this.level.wavesUntilAdvance)}/${this.level.wavesUntilAdvance}. Al terminar aparece Continuar.`,
+        detail: `${biomeLabel}. ${eventLabel} ${mutatorLabel} Oleadas ${Math.min(this.levelWave, this.level.wavesUntilAdvance)}/${this.level.wavesUntilAdvance}.`,
       };
     }
 
     if (boss) {
       return {
-        title: "Destruye a ARCHON PRIME.",
-        detail: `Integridad del jefe ${boss.health}/${boss.maxHealth}. Mantente en movimiento y castiga el nucleo.`,
+        title: `Destruye a ${boss.label}.`,
+        detail: `${biomeLabel}. ${mutatorLabel} Integridad ${boss.health}/${boss.maxHealth}.`,
       };
     }
 
     return {
       title: "Conten la expansion de la brecha.",
-      detail: "Limpia las oleadas y prepara recursos para la siguiente irrupcion del reactor.",
+      detail: `${biomeLabel}. ${eventLabel} ${mutatorLabel} Limpia oleadas y prepara recursos para la siguiente irrupcion.`,
     };
   }
 
@@ -724,6 +792,10 @@ export class NeonHellGame {
     if (!room?.players) {
       return;
     }
+
+    this.onlineRoom = room;
+    this.onlinePlaylistId = room.playlistId || this.onlinePlaylistId;
+    this.onlineSquadName = room.squadName || this.onlineSquadName;
 
     const activeIds = new Set();
 
@@ -773,6 +845,7 @@ export class NeonHellGame {
     this.audio?.playKill();
 
     if (enemy.isBoss) {
+      this.bossKills += 1;
       this.player.addShellAmmo(4);
       this.player.addAltAmmo(3);
       this.pickups.push({
@@ -783,7 +856,7 @@ export class NeonHellGame {
         phase: this.runtime,
         color: getPickupColor("fury"),
       });
-      this.pushAlert("ARCHON PRIME cayo. Fury shard liberado.");
+      this.pushAlert(`${enemy.label} cayo. Fury shard liberado.`);
     }
   }
 
@@ -797,6 +870,8 @@ export class NeonHellGame {
   }
 
   updatePickups() {
+    const pickupAmmoMultiplier = this.activeMutator?.modifiers?.pickupAmmoMultiplier || 1;
+
     for (const pickup of this.pickups) {
       if (pickup.collected) {
         continue;
@@ -815,10 +890,10 @@ export class NeonHellGame {
         this.pushAlert("Nano medkit absorbido.");
       } else if (pickup.type === "overcharge") {
         this.player.heal(18);
-        this.player.addAmmo(24);
-        this.player.addShellAmmo(4);
+        this.player.addAmmo(Math.round(24 * pickupAmmoMultiplier));
+        this.player.addShellAmmo(Math.round(4 * pickupAmmoMultiplier));
         this.player.addAltAmmo(1);
-        this.player.score += 120;
+        this.player.score += Math.round(120 * this.getScoreMultiplier());
         this.pushAlert("Nucleo overcharge capturado.");
       } else if (pickup.type === "fury") {
         this.activeEffects.fury = 12;
@@ -827,14 +902,14 @@ export class NeonHellGame {
         this.activeEffects.shield = 12;
         this.pushAlert("Shield matrix activa.");
       } else if (pickup.type === "arsenal") {
-        this.player.addAmmo(18);
-        this.player.addShellAmmo(6);
+        this.player.addAmmo(Math.round(18 * pickupAmmoMultiplier));
+        this.player.addShellAmmo(Math.round(6 * pickupAmmoMultiplier));
         this.activeEffects.overclock = 10;
         this.player.addAltAmmo(2);
         this.pushAlert("Arsenal sync activado.");
       } else {
-        this.player.addAmmo(22);
-        this.player.addShellAmmo(4);
+        this.player.addAmmo(Math.round(22 * pickupAmmoMultiplier));
+        this.player.addShellAmmo(Math.round(4 * pickupAmmoMultiplier));
         this.pushAlert("Municion mixta recogida.");
       }
 
@@ -850,16 +925,20 @@ export class NeonHellGame {
     }
 
     const cycle = ["ammo", "health", "fury", "shield", "arsenal", "overcharge"];
-    const pickupType = cycle[this.totalWave % cycle.length];
+    const extraPickups = this.activeMutator?.modifiers?.extraPickupsPerWave || 0;
 
-    this.pickups.push({
-      type: pickupType,
-      x: Math.max(1.5, Math.min(spawn.x + 0.7, this.level.map[0].length - 1.5)),
-      y: Math.max(1.5, Math.min(spawn.y - 0.5, this.level.map.length - 1.5)),
-      collected: false,
-      phase: this.runtime,
-      color: getPickupColor(pickupType),
-    });
+    for (let index = 0; index <= extraPickups; index += 1) {
+      const pickupType = cycle[(this.totalWave + index) % cycle.length];
+
+      this.pickups.push({
+        type: pickupType,
+        x: Math.max(1.5, Math.min(spawn.x + 0.7 + index * 0.4, this.level.map[0].length - 1.5)),
+        y: Math.max(1.5, Math.min(spawn.y - 0.5 + index * 0.3, this.level.map.length - 1.5)),
+        collected: false,
+        phase: this.runtime + index * 0.35,
+        color: getPickupColor(pickupType),
+      });
+    }
   }
 
   useNearbyDoor() {
@@ -897,7 +976,7 @@ export class NeonHellGame {
     this.activeEffects.fury = Math.max(0, this.activeEffects.fury - dt);
     this.activeEffects.shield = Math.max(0, this.activeEffects.shield - dt);
     this.activeEffects.overclock = Math.max(0, this.activeEffects.overclock - dt);
-    this.player.speedMultiplier = this.activeEffects.overclock > 0 ? 1.28 : 1;
+    this.player.speedMultiplier = (this.activeEffects.overclock > 0 ? 1.28 : 1) * this.getPlayerSpeedMultiplier();
   }
 
   spawnBloodBurst(x, y, count, color) {
@@ -958,6 +1037,55 @@ export class NeonHellGame {
     }
 
     return true;
+  }
+
+  resolveUnlockedWeapons() {
+    return this.progression?.unlockedWeapons
+      ?.filter((weapon) => weapon.unlocked)
+      .map((weapon) => weapon.id) || ["repeater"];
+  }
+
+  getPlayerStartModifiers() {
+    const upgrades = this.progression?.permanentUpgrades || {};
+
+    return {
+      extraHealth: (Number(upgrades.healthTier) || 0) * 12,
+      extraAmmo: (Number(upgrades.ammoTier) || 0) * 26,
+      baseSpeedMultiplier: 1 + (Number(upgrades.speedTier) || 0) * 0.04,
+    };
+  }
+
+  getEnemyTuning() {
+    return {
+      enemySpeedMultiplier: this.getEnemySpeedMultiplier(),
+      enemyDamageMultiplier: this.getEnemyDamageMultiplier(),
+      enemyHealthMultiplier: this.activeMutator?.modifiers?.enemyHealthMultiplier || 1,
+      bossHealthMultiplier: this.activeMutator?.modifiers?.bossHealthMultiplier || 1,
+    };
+  }
+
+  getEnemySpeedMultiplier() {
+    return (this.liveEvent?.gameplay?.enemySpeedMultiplier || 1) * (this.activeMutator?.modifiers?.enemySpeedMultiplier || 1);
+  }
+
+  getEnemyDamageMultiplier() {
+    return (this.liveEvent?.gameplay?.enemyDamageMultiplier || 1) * (this.activeMutator?.modifiers?.enemyDamageMultiplier || 1);
+  }
+
+  getEnemyCountMultiplier() {
+    return (this.liveEvent?.gameplay?.enemyCountMultiplier || 1) * (this.activeMutator?.modifiers?.enemyCountMultiplier || 1);
+  }
+
+  getWaveAmmoMultiplier() {
+    return (this.liveEvent?.gameplay?.waveAmmoMultiplier || 1) * (this.activeMutator?.modifiers?.waveAmmoMultiplier || 1);
+  }
+
+  getScoreMultiplier() {
+    return (this.liveEvent?.gameplay?.scoreMultiplier || 1) * (this.activeMutator?.modifiers?.scoreMultiplier || 1);
+  }
+
+  getPlayerSpeedMultiplier() {
+    return this.activeMutator?.modifiers?.playerSpeedMultiplier || 1;
   }
 }
 

@@ -11,6 +11,10 @@ dotenv.config({ path: path.resolve(__dirname, "server", ".env") });
 const connectToDatabase = require("./config/database");
 const authRoutes = require("./routes/auth");
 const scoreRoutes = require("./routes/scores");
+const productRoutes = require("./routes/product");
+const squadRoutes = require("./routes/squads");
+const analyticsRoutes = require("./routes/analytics");
+const adminRoutes = require("./routes/admin");
 
 const app = express();
 const server = http.createServer(app);
@@ -28,6 +32,10 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/scores", scoreRoutes);
+app.use("/api/product", productRoutes);
+app.use("/api/squads", squadRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/health", (_request, response) => {
   response.json({
@@ -46,6 +54,28 @@ app.get("*", (request, response, next) => {
 
 const onlineRooms = new Map();
 
+function normalizeSquadName(value, fallback = "Squad") {
+  const cleaned = String(value || fallback).trim().replace(/\s+/g, " ");
+  return cleaned.slice(0, 32) || fallback;
+}
+
+function buildSquadKey(room) {
+  const base = room.squadName || [...room.players.values()].map((player) => player.username).sort().join("-");
+
+  return String(base)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function buildRewardLabel(room) {
+  return room.playlistId === "squad-horde"
+    ? "+XP, +Season Tokens y ranking por squad"
+    : "Presencia compartida y progreso sincronizado";
+}
+
 function createRoomCode() {
   let code = "";
 
@@ -60,6 +90,10 @@ function serializeRoom(room) {
   return {
     code: room.code,
     status: room.status,
+    playlistId: room.playlistId,
+    squadName: room.squadName,
+    squadKey: buildSquadKey(room),
+    rewardLabel: buildRewardLabel(room),
     players: [...room.players.values()].map((player) => ({
       id: player.id,
       username: player.username,
@@ -87,6 +121,31 @@ function joinOnlineRoom(socket, room, username) {
 
 function emitRoomUpdate(room) {
   io.to(room.code).emit("online:room", serializeRoom(room));
+}
+
+function createOnlineRoomForHost(socket, { username, playlistId = "squad-horde", squadName } = {}) {
+  const code = createRoomCode();
+  const room = {
+    code,
+    hostId: socket.id,
+    status: "lobby",
+    playlistId: String(playlistId || "squad-horde").trim().slice(0, 20) || "squad-horde",
+    squadName: normalizeSquadName(squadName, `${username || "Operador"} Squad`),
+    players: new Map(),
+    createdAt: Date.now(),
+  };
+
+  onlineRooms.set(code, room);
+  joinOnlineRoom(socket, room, username);
+  return room;
+}
+
+function findMatchmakingRoom() {
+  return [...onlineRooms.values()].find((room) => (
+    room.status === "lobby" &&
+    room.playlistId === "squad-horde" &&
+    room.players.size < 4
+  ));
 }
 
 function leaveOnlineRoom(socket) {
@@ -121,18 +180,24 @@ function leaveOnlineRoom(socket) {
 io.on("connection", (socket) => {
   console.log(`[socket] playerConnected: ${socket.id}`);
 
-  socket.on("online:create", ({ username } = {}, acknowledge) => {
-    const code = createRoomCode();
-    const room = {
-      code,
-      hostId: socket.id,
-      status: "lobby",
-      players: new Map(),
-      createdAt: Date.now(),
-    };
+  socket.on("online:create", ({ username, playlistId, squadName } = {}, acknowledge) => {
+    const room = createOnlineRoomForHost(socket, { username, playlistId, squadName });
+    const payload = serializeRoom(room);
+    acknowledge?.({ ok: true, room: payload });
+    emitRoomUpdate(room);
+  });
 
-    onlineRooms.set(code, room);
-    joinOnlineRoom(socket, room, username);
+  socket.on("online:matchmake", ({ username } = {}, acknowledge) => {
+    const room = findMatchmakingRoom() || createOnlineRoomForHost(socket, {
+      username,
+      playlistId: "squad-horde",
+      squadName: "Matchmade Horde",
+    });
+
+    if (!room.players.has(socket.id)) {
+      joinOnlineRoom(socket, room, username);
+    }
+
     const payload = serializeRoom(room);
     acknowledge?.({ ok: true, room: payload });
     emitRoomUpdate(room);
@@ -155,6 +220,25 @@ io.on("connection", (socket) => {
     joinOnlineRoom(socket, room, username);
     const payload = serializeRoom(room);
     acknowledge?.({ ok: true, room: payload });
+    emitRoomUpdate(room);
+  });
+
+  socket.on("online:configure", ({ code, playlistId, squadName } = {}, acknowledge) => {
+    const room = onlineRooms.get(String(code || "").trim().toUpperCase());
+
+    if (!room) {
+      acknowledge?.({ ok: false, message: "Sala no encontrada." });
+      return;
+    }
+
+    if (room.hostId !== socket.id) {
+      acknowledge?.({ ok: false, message: "Solo el host puede editar la sala." });
+      return;
+    }
+
+    room.playlistId = String(playlistId || room.playlistId || "squad-horde").trim().slice(0, 20) || "squad-horde";
+    room.squadName = normalizeSquadName(squadName, room.squadName || "Squad");
+    acknowledge?.({ ok: true, room: serializeRoom(room) });
     emitRoomUpdate(room);
   });
 
