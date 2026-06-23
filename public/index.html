@@ -56,23 +56,23 @@
         </div>
       </section>
 
-      <section class="screen" id="screen-ftue">
-        <div class="hero-panel ftue-layout">
-          <div>
-            <p class="eyebrow">Campana // Modo historia</p>
-            <h2>Misiones de la brecha</h2>
-            <p class="hero-copy">
-              Empeza directo por la Mision 1. Crear cuenta es opcional y solo
-              sirve para guardar ranking, progreso y jugar online.
+      <section class="screen mission-screen" id="screen-ftue">
+        <div class="hero-panel ftue-layout mission-focus">
+          <article class="briefing-art mission-current-art" id="ftue-mission-art"></article>
+          <article class="panel-card mission-current-copy">
+            <p class="eyebrow">Historia // Mision actual</p>
+            <h2 id="ftue-current-title">Mision 01 // Boot Bay</h2>
+            <p class="hero-copy" id="ftue-current-body">
+              Primer descenso corto para calibrar movimiento, disparo, pickups y puertas.
             </p>
-            <div class="ftue-steps" id="ftue-steps"></div>
-            <div class="footer-actions ftue-actions">
-              <button class="neon-button" id="btn-ftue-start">Jugar Mision 1</button>
-              <button class="neon-button alt" id="btn-ftue-account">Guardar progreso opcional</button>
-              <button class="neon-button ghost" id="btn-ftue-back">Volver</button>
-            </div>
-          </div>
-          <div class="mission-stack" id="ftue-missions"></div>
+            <div class="ftue-steps mission-objectives" id="ftue-steps"></div>
+          </article>
+          <div class="mission-stack sr-only" id="ftue-missions"></div>
+        </div>
+        <div class="footer-actions ftue-actions mission-footer">
+          <button class="neon-button" id="btn-ftue-start">Iniciar mision</button>
+          <button class="neon-button alt" id="btn-ftue-account">Cuenta</button>
+          <button class="neon-button ghost" id="btn-ftue-back">Volver</button>
         </div>
       </section>
 
@@ -112,7 +112,7 @@
             <h2 id="briefing-title">SECTOR 13</h2>
             <p class="hero-copy" id="briefing-text"></p>
             <div class="briefing-list" id="briefing-objectives"></div>
-            <div class="footer-actions">
+            <div class="footer-actions mission-footer">
               <button class="neon-button" id="btn-deploy">Desplegar</button>
               <button class="neon-button ghost" id="btn-briefing-back">Volver</button>
             </div>
@@ -310,6 +310,12 @@
             <div class="joystick-ring">
               <div class="joystick-knob" id="movement-joystick-knob"></div>
             </div>
+          </div>
+          <div class="look-zone" id="look-zone" aria-label="Zona tactil para mover la camara">
+            <div class="look-stick">
+              <div class="look-knob" id="look-knob"></div>
+            </div>
+            <span>Mirar</span>
           </div>
           <button data-action="turnLeft">◀</button>
           <button data-action="turnRight">▶</button>

@@ -35,6 +35,11 @@ export class UIController {
     this.scoreUsername = document.getElementById("score-username");
     this.ftueSteps = document.getElementById("ftue-steps");
     this.ftueMissions = document.getElementById("ftue-missions");
+    this.ftueCurrent = {
+      title: document.getElementById("ftue-current-title"),
+      body: document.getElementById("ftue-current-body"),
+      art: document.getElementById("ftue-mission-art"),
+    };
     this.onlineRoomTitle = document.getElementById("online-room-title");
     this.onlineStatus = document.getElementById("online-status");
     this.onlinePlayers = document.getElementById("online-players");
@@ -109,29 +114,31 @@ export class UIController {
       .join("");
   }
 
-  renderFtue({ steps, missions, complete }) {
-    this.ftueSteps.innerHTML = steps
-      .map(
-        (step, index) => `
-          <article class="ftue-step">
-            <strong>${index + 1}. ${escapeHtml(step.title)}</strong>
-            <p>${escapeHtml(step.body)}</p>
-          </article>
-        `,
-      )
-      .join("");
+  renderFtue({ missions, complete }) {
+    const currentMission = missions[0];
 
-    this.ftueMissions.innerHTML = missions
+    if (!currentMission) {
+      return;
+    }
+
+    this.ftueCurrent.title.textContent = currentMission.title;
+    this.ftueCurrent.body.textContent = currentMission.body;
+    this.ftueCurrent.art.style.backgroundImage = `
+      linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.48)),
+      url("${currentMission.art}")
+    `;
+    this.ftueSteps.innerHTML = currentMission.objectives
+      .slice(0, 2)
       .map(
-        (mission) => `
-          <article class="mission-card">
-            <span>${escapeHtml(mission.label)}</span>
-            <h3>${escapeHtml(mission.title)}</h3>
-            <p>${escapeHtml(mission.body)}</p>
+        (objective, index) => `
+          <article class="mission-objective">
+            <strong>Objetivo ${index + 1}</strong>
+            <p>${escapeHtml(objective)}</p>
           </article>
         `,
       )
       .join("");
+    this.ftueMissions.innerHTML = "";
 
     if (complete) {
       this.showToast("Modo historia listo para continuar.");

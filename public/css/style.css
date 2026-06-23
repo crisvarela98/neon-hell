@@ -1317,11 +1317,22 @@ h2 {
   background: #000000;
 }
 
+.splash-screen::before,
+.splash-screen::after {
+  content: none;
+}
+
+body:has(.splash-screen.active) .backdrop {
+  display: none;
+}
+
 .splash-screen .splash-logo {
   width: min(78vmin, 760px);
   max-width: calc(100vw - 28px);
   max-height: calc(100svh - 28px);
   margin: 0;
+  filter: none;
+  box-shadow: none;
 }
 
 .options-grid {
@@ -1333,6 +1344,68 @@ h2 {
 .settings-actions {
   display: grid;
   gap: 10px;
+}
+
+.mission-screen {
+  position: relative;
+  padding-bottom: 92px;
+}
+
+.mission-focus {
+  align-items: stretch;
+}
+
+.mission-current-copy {
+  display: grid;
+  align-content: center;
+}
+
+.mission-current-copy .hero-copy,
+.briefing-copy .hero-copy {
+  max-width: 48ch;
+}
+
+.mission-objectives {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.mission-objective {
+  border: 1px solid rgba(0, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(18, 18, 20, 0.68);
+}
+
+.mission-objective strong {
+  display: block;
+  color: var(--blue);
+  margin-bottom: 4px;
+}
+
+.mission-objective p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.mission-footer {
+  position: fixed;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 45;
+  width: min(720px, calc(100vw - 28px));
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(0, 255, 255, 0.22);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.82);
+  box-shadow: 0 0 28px rgba(0, 255, 255, 0.16);
+  backdrop-filter: blur(14px);
 }
 
 #screen-auth {
@@ -1439,6 +1512,10 @@ h2 {
   display: none;
 }
 
+.look-zone {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .options-grid {
     grid-template-columns: 1fr;
@@ -1470,6 +1547,25 @@ h2 {
     max-height: calc(100svh - 4px);
     padding: 7px 9px;
     border-radius: 13px;
+  }
+
+  #screen-menu .hero-panel,
+  #screen-ftue .hero-panel,
+  #screen-briefing .hero-panel {
+    overflow: hidden;
+  }
+
+  #screen-menu .menu-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #screen-menu .menu-showcase {
+    display: none;
+  }
+
+  #screen-menu #btn-start,
+  #screen-menu #btn-exit {
+    grid-column: 1 / -1;
   }
 
   .menu-grid,
@@ -1506,12 +1602,14 @@ h2 {
 
   .splash-screen {
     padding: 0;
+    background: #000000;
   }
 
   .splash-screen .splash-logo {
     width: min(86vmin, 520px);
     max-width: calc(100vw - 20px);
     max-height: calc(100svh - 20px);
+    filter: none;
   }
 
   h1 {
@@ -1594,6 +1692,63 @@ h2 {
   .briefing-art {
     min-height: 138px;
     border-radius: 12px;
+  }
+
+  #screen-ftue,
+  #screen-briefing {
+    padding-bottom: 44px;
+  }
+
+  #screen-ftue .hero-panel,
+  #screen-briefing .hero-panel {
+    max-height: calc(100svh - 46px);
+  }
+
+  .mission-focus,
+  .briefing-layout {
+    grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  }
+
+  .mission-current-copy .hero-copy,
+  .briefing-copy .hero-copy {
+    display: -webkit-box;
+    max-width: none;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .mission-objectives,
+  .briefing-list {
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .mission-objective,
+  .briefing-item {
+    padding: 5px 7px;
+    border-radius: 9px;
+  }
+
+  .mission-objective:nth-child(n + 2),
+  .briefing-item:nth-child(n + 2) {
+    display: none;
+  }
+
+  .mission-footer {
+    bottom: max(3px, env(safe-area-inset-bottom));
+    width: min(560px, calc(100vw - 16px));
+    grid-template-columns: 1fr auto auto;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .mission-footer .neon-button {
+    min-height: 28px;
+    padding: 5px 8px;
+    font-size: 0.62rem;
+    border-radius: 8px;
   }
 
   .ranking-list {
@@ -1692,12 +1847,71 @@ h2 {
   }
 
   .virtual-joystick,
+  .look-zone,
   .touch-controls button {
     position: absolute;
     pointer-events: auto;
   }
 
+  .look-zone {
+    top: max(44px, calc(env(safe-area-inset-top) + 36px));
+    right: 0;
+    bottom: max(116px, calc(env(safe-area-inset-bottom) + 112px));
+    width: 48vw;
+    z-index: 1;
+    display: block;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .look-stick {
+    position: absolute;
+    right: max(24px, calc(env(safe-area-inset-right) + 18px));
+    top: 50%;
+    width: 82px;
+    height: 82px;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    border: 1px solid rgba(0, 255, 255, 0.22);
+    background:
+      radial-gradient(circle, rgba(0, 255, 255, 0.1), rgba(18, 18, 20, 0.12) 58%),
+      rgba(0, 0, 0, 0.12);
+    opacity: 0.38;
+    transition: opacity 0.12s ease, border-color 0.12s ease;
+  }
+
+  .look-zone.active .look-stick {
+    border-color: rgba(57, 255, 20, 0.56);
+    opacity: 0.78;
+  }
+
+  .look-knob {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(57, 255, 20, 0.78), rgba(0, 255, 255, 0.5) 68%, rgba(18, 18, 20, 0.28) 70%);
+    border: 1px solid rgba(57, 255, 20, 0.5);
+    pointer-events: none;
+  }
+
+  .look-zone span {
+    position: absolute;
+    right: max(45px, calc(env(safe-area-inset-right) + 39px));
+    top: calc(50% + 48px);
+    color: rgba(0, 255, 255, 0.48);
+    font-size: 0.52rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
   .virtual-joystick {
+    z-index: 3;
     left: max(12px, env(safe-area-inset-left));
     bottom: max(12px, env(safe-area-inset-bottom));
     width: 104px;
@@ -1711,6 +1925,7 @@ h2 {
   }
 
   .touch-controls button {
+    z-index: 4;
     min-height: 0;
     padding: 0;
     border-radius: 999px;

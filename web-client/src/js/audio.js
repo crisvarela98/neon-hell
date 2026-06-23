@@ -192,27 +192,58 @@ export class NeonAudio {
   playShot(profile = "repeater") {
     const profiles = {
       repeater: () => {
-        this.pulse({ frequency: 320, duration: 0.09, type: "square", volume: 0.18, slide: 1.8 });
-        this.noiseBurst({ duration: 0.06, volume: 0.05, highpass: 1400 });
+        this.pulse({ frequency: 520, duration: 0.055, type: "square", volume: 0.13, slide: 2.2 });
+        this.pulse({ frequency: 780, duration: 0.035, type: "sine", volume: 0.06, slide: 1.35 });
+        this.noiseBurst({ duration: 0.035, volume: 0.035, highpass: 1800 });
       },
       shotgun: () => {
-        this.pulse({ frequency: 120, duration: 0.16, type: "sawtooth", volume: 0.2, slide: 0.62 });
-        this.pulse({ frequency: 210, duration: 0.08, type: "square", volume: 0.14, slide: 0.78 });
-        this.noiseBurst({ duration: 0.11, volume: 0.1, highpass: 520 });
+        this.pulse({ frequency: 92, duration: 0.2, type: "sawtooth", volume: 0.24, slide: 0.48 });
+        this.pulse({ frequency: 180, duration: 0.12, type: "square", volume: 0.12, slide: 0.62 });
+        this.noiseBurst({ duration: 0.16, volume: 0.14, highpass: 380 });
       },
       carbine: () => {
-        this.pulse({ frequency: 420, duration: 0.12, type: "triangle", volume: 0.16, slide: 0.74 });
-        this.pulse({ frequency: 860, duration: 0.05, type: "sine", volume: 0.08, slide: 0.66 });
-        this.noiseBurst({ duration: 0.05, volume: 0.04, highpass: 1800 });
+        this.pulse({ frequency: 980, duration: 0.045, type: "sine", volume: 0.12, slide: 0.58 });
+        this.pulse({ frequency: 360, duration: 0.16, type: "triangle", volume: 0.14, slide: 0.7 });
+        this.noiseBurst({ duration: 0.045, volume: 0.035, highpass: 2200 });
       },
       hellburst: () => {
-        this.pulse({ frequency: 150, duration: 0.2, type: "sawtooth", volume: 0.24, slide: 0.46 });
-        this.pulse({ frequency: 74, duration: 0.24, type: "square", volume: 0.12, slide: 0.58 });
-        this.noiseBurst({ duration: 0.14, volume: 0.12, highpass: 340 });
+        this.pulse({ frequency: 70, duration: 0.3, type: "sawtooth", volume: 0.26, slide: 0.38 });
+        this.pulse({ frequency: 42, duration: 0.34, type: "square", volume: 0.13, slide: 0.5 });
+        this.noiseBurst({ duration: 0.22, volume: 0.15, highpass: 240 });
       },
     };
 
     (profiles[profile] || profiles.repeater)();
+  }
+
+  playEnemyShot(type = "hacker") {
+    const profiles = {
+      hacker: () => {
+        this.pulse({ frequency: 680, duration: 0.07, type: "square", volume: 0.08, slide: 0.78 });
+        this.noiseBurst({ duration: 0.035, volume: 0.025, highpass: 1600 });
+      },
+      drone: () => {
+        this.pulse({ frequency: 440, duration: 0.1, type: "triangle", volume: 0.09, slide: 1.42 });
+        this.noiseBurst({ duration: 0.04, volume: 0.03, highpass: 2000 });
+      },
+      demon: () => {
+        this.pulse({ frequency: 128, duration: 0.18, type: "sawtooth", volume: 0.11, slide: 0.58 });
+        this.noiseBurst({ duration: 0.08, volume: 0.05, highpass: 460 });
+      },
+      archon: () => {
+        this.pulse({ frequency: 88, duration: 0.2, type: "square", volume: 0.12, slide: 0.46 });
+        this.pulse({ frequency: 240, duration: 0.1, type: "triangle", volume: 0.08, slide: 1.28 });
+        this.noiseBurst({ duration: 0.1, volume: 0.06, highpass: 360 });
+      },
+    };
+
+    (profiles[type] || profiles.hacker)();
+  }
+
+  playEnemyMelee(type = "demon") {
+    const baseFrequency = type === "archon" ? 72 : type === "demon" ? 96 : 180;
+    this.pulse({ frequency: baseFrequency, duration: 0.12, type: "sawtooth", volume: 0.1, slide: 0.55 });
+    this.noiseBurst({ duration: 0.055, volume: 0.06, highpass: 520 });
   }
 
   playHit() {

@@ -184,6 +184,7 @@ export function getMissionBriefs() {
     label: `Mision ${String(index + 1).padStart(2, "0")}`,
     title: level.briefingTitle,
     body: level.briefingText,
+    art: level.art,
     objectives: level.objectives,
   }));
 }

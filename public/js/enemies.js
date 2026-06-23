@@ -17,7 +17,12 @@ const ENEMY_TYPES = {
     color: "#FF00FF",
     damage: 10,
     meleeRange: 0.75,
-    attackCooldown: 0.9,
+    rangedRange: 5.2,
+    preferredDistance: 2.4,
+    attackCooldown: 1.15,
+    projectileSpeed: 4.9,
+    projectileRadius: 0.1,
+    weaponLabel: "Glitch pistol",
     scoreValue: 100,
     size: 0.48,
     sprite: makeSprite("/assets/images/enemies/hacker-infectado.png"),
@@ -30,7 +35,11 @@ const ENEMY_TYPES = {
     color: "#00FFFF",
     damage: 12,
     rangedRange: 6.5,
+    preferredDistance: 3.4,
     attackCooldown: 1.65,
+    projectileSpeed: 5.3,
+    projectileRadius: 0.11,
+    weaponLabel: "Pulse cannon",
     scoreValue: 200,
     size: 0.42,
     sprite: makeSprite("/assets/images/enemies/drone-corrupto.png"),
@@ -43,7 +52,12 @@ const ENEMY_TYPES = {
     color: "#FF0055",
     damage: 22,
     meleeRange: 0.92,
-    attackCooldown: 1.35,
+    rangedRange: 4.6,
+    preferredDistance: 2.1,
+    attackCooldown: 1.45,
+    projectileSpeed: 3.9,
+    projectileRadius: 0.14,
+    weaponLabel: "Hell spike",
     scoreValue: 500,
     size: 0.64,
     sprite: makeSprite("/assets/images/enemies/demonio-cibernetico.png"),
@@ -57,7 +71,11 @@ const ENEMY_TYPES = {
     damage: 18,
     meleeRange: 1,
     rangedRange: 8.4,
+    preferredDistance: 4.8,
     attackCooldown: 1.1,
+    projectileSpeed: 5.4,
+    projectileRadius: 0.15,
+    weaponLabel: "Breach cannon",
     scoreValue: 2200,
     size: 0.92,
     isBoss: true,
@@ -66,14 +84,15 @@ const ENEMY_TYPES = {
 };
 
 export class EnemyProjectile {
-  constructor(x, y, angle, damage, color, speed = 4.2) {
+  constructor(x, y, angle, damage, color, speed = 4.2, radius = 0.12, sourceLabel = "Proyectil corrupto") {
     this.x = x;
     this.y = y;
     this.angle = angle;
     this.damage = damage;
     this.color = color;
-    this.radius = 0.12;
+    this.radius = radius;
     this.speed = speed;
+    this.sourceLabel = sourceLabel;
     this.dead = false;
   }
 
@@ -97,7 +116,7 @@ export class EnemyProjectile {
 
     if (distanceToPlayer <= game.player.radius + this.radius) {
       this.dead = true;
-      game.damagePlayer(this.damage, "Proyectil corrupto");
+      game.damagePlayer(this.damage, this.sourceLabel);
     }
   }
 }
@@ -113,6 +132,10 @@ export class Enemy {
     this.damage = Math.round(config.damage * (1 + waveMultiplier * 0.04));
     this.meleeRange = config.meleeRange || 0;
     this.rangedRange = config.rangedRange || 0;
+    this.preferredDistance = config.preferredDistance || Math.max(2.4, this.rangedRange * 0.52);
+    this.projectileSpeed = config.projectileSpeed || 4.2;
+    this.projectileRadius = config.projectileRadius || 0.12;
+    this.weaponLabel = config.weaponLabel || "Arma corrupta";
     this.attackCooldown = Math.max(0.35, config.attackCooldown - waveMultiplier * 0.01);
     this.scoreValue = config.scoreValue;
     this.size = config.size;
@@ -123,6 +146,8 @@ export class Enemy {
     this.y = y;
     this.dead = false;
     this.hitFlash = 0;
+    this.attackFlash = 0;
+    this.attackAngle = 0;
     this.attackTimer = Math.random() * this.attackCooldown;
     this.hoverPhase = Math.random() * Math.PI * 2;
     this.strafeDirection = Math.random() > 0.5 ? 1 : -1;
@@ -135,6 +160,7 @@ export class Enemy {
     }
 
     this.hitFlash = Math.max(0, this.hitFlash - dt * 5);
+    this.attackFlash = Math.max(0, this.attackFlash - dt * 5.5);
     this.attackTimer -= dt;
 
     const dx = game.player.x - this.x;
@@ -146,8 +172,8 @@ export class Enemy {
     const sideY = directionX;
     const crowdForce = this.computeSeparation(game);
 
-    if (this.type === "drone" || this.type === "archon") {
-      const preferredDistance = this.isBoss ? 4.8 : 3.4;
+    if (this.rangedRange > 0 && distance > this.meleeRange + 0.25) {
+      const preferredDistance = this.preferredDistance;
       const strafeStrength = this.isBoss ? 0.62 : 0.4;
 
       if (distance > preferredDistance) {
@@ -175,39 +201,11 @@ export class Enemy {
         this.attackTimer <= 0 &&
         game.hasLineOfSight(this.x, this.y, game.player.x, game.player.y)
       ) {
-        this.attackTimer = this.attackCooldown;
-
-        if (this.isBoss) {
-          [-0.18, 0, 0.18].forEach((offset) => {
-            game.spawnProjectile(
-              new EnemyProjectile(
-                this.x,
-                this.y,
-                Math.atan2(dy, dx) + offset,
-                this.damage,
-                this.color,
-                5.1,
-              ),
-            );
-          });
-          game.pushAlert("ARCHON PRIME descargo una rafaga.");
-        } else {
-          game.spawnProjectile(
-            new EnemyProjectile(
-              this.x,
-              this.y,
-              Math.atan2(dy, dx),
-              this.damage,
-              this.color,
-            ),
-          );
-          game.pushAlert("Drone corrupto disparando.");
-        }
+        this.fireAtPlayer(game, Math.atan2(dy, dx));
       }
 
       if (this.isBoss && distance <= this.meleeRange && this.attackTimer <= 0) {
-        this.attackTimer = this.attackCooldown;
-        game.damagePlayer(this.damage + 10, this.label);
+        this.performMeleeAttack(game, this.damage + 10);
       }
 
       return;
@@ -222,9 +220,60 @@ export class Enemy {
     }
 
     if (distance <= this.meleeRange && this.attackTimer <= 0) {
-      this.attackTimer = this.attackCooldown;
-      game.damagePlayer(this.damage, this.label);
+      this.performMeleeAttack(game, this.damage);
     }
+  }
+
+  fireAtPlayer(game, angle) {
+    this.attackTimer = this.attackCooldown;
+    this.attackFlash = 1;
+    this.attackAngle = angle;
+    game.audio?.playEnemyShot?.(this.type);
+
+    if (this.isBoss) {
+      [-0.18, 0, 0.18].forEach((offset) => {
+        game.spawnProjectile(
+          new EnemyProjectile(
+            this.x,
+            this.y,
+            angle + offset,
+            this.damage,
+            this.color,
+            this.projectileSpeed,
+            this.projectileRadius,
+            `${this.label} // ${this.weaponLabel}`,
+          ),
+        );
+      });
+      game.pushAlert(`${this.label} te apunta con ${this.weaponLabel}.`);
+      return;
+    }
+
+    const offsets = this.type === "demon" ? [-0.08, 0.08] : [0];
+
+    offsets.forEach((offset) => {
+      game.spawnProjectile(
+        new EnemyProjectile(
+          this.x,
+          this.y,
+          angle + offset,
+          this.damage,
+          this.color,
+          this.projectileSpeed,
+          this.projectileRadius,
+          `${this.label} // ${this.weaponLabel}`,
+        ),
+      );
+    });
+    game.pushAlert(`${this.label} dispara ${this.weaponLabel}.`);
+  }
+
+  performMeleeAttack(game, damage) {
+    this.attackTimer = this.attackCooldown;
+    this.attackFlash = 1;
+    this.attackAngle = Math.atan2(game.player.y - this.y, game.player.x - this.x);
+    game.audio?.playEnemyMelee?.(this.type);
+    game.damagePlayer(damage, `${this.label} // ataque cuerpo a cuerpo`);
   }
 
   computeSeparation(game) {

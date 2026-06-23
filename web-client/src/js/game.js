@@ -179,6 +179,7 @@ export class NeonHellGame {
     });
 
     this.bindMovementJoystick();
+    this.bindLookTouchArea();
   }
 
   bindMovementJoystick() {
@@ -238,6 +239,61 @@ export class NeonHellGame {
     joystick.addEventListener("lostpointercapture", resetJoystick);
   }
 
+  bindLookTouchArea() {
+    const lookZone = document.getElementById("look-zone");
+    const lookKnob = document.getElementById("look-knob");
+
+    if (!lookZone || !lookKnob) {
+      return;
+    }
+
+    let activePointerId = null;
+    let previousX = 0;
+    let originX = 0;
+    let originY = 0;
+
+    const resetLook = () => {
+      activePointerId = null;
+      lookKnob.style.transform = "translate(-50%, -50%)";
+      lookZone.classList.remove("active");
+    };
+
+    this.resetLookTouchArea = resetLook;
+
+    lookZone.addEventListener("pointerdown", (event) => {
+      if (!this.running) {
+        return;
+      }
+
+      event.preventDefault();
+      activePointerId = event.pointerId;
+      previousX = event.clientX;
+      originX = event.clientX;
+      originY = event.clientY;
+      lookZone.setPointerCapture?.(event.pointerId);
+      lookZone.classList.add("active");
+    });
+
+    lookZone.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== activePointerId || !this.running || !this.player) {
+        return;
+      }
+
+      event.preventDefault();
+      const deltaX = event.clientX - previousX;
+      const visualDeltaX = Math.max(-24, Math.min(24, event.clientX - originX));
+      const visualDeltaY = Math.max(-24, Math.min(24, event.clientY - originY));
+
+      previousX = event.clientX;
+      this.player.addLook(deltaX * 0.006);
+      lookKnob.style.transform = `translate(calc(-50% + ${visualDeltaX}px), calc(-50% + ${visualDeltaY}px))`;
+    });
+
+    lookZone.addEventListener("pointerup", resetLook);
+    lookZone.addEventListener("pointercancel", resetLook);
+    lookZone.addEventListener("lostpointercapture", resetLook);
+  }
+
   resizeCanvas() {
     const rect = this.canvas.getBoundingClientRect();
     const width = Math.max(320, Math.floor(rect.width || 960));
@@ -288,6 +344,7 @@ export class NeonHellGame {
     this.running = false;
     this.input.moveAxis = 0;
     this.input.strafeAxis = 0;
+    this.resetLookTouchArea?.();
     cancelAnimationFrame(this.loopHandle);
   }
 

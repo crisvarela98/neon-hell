@@ -157,6 +157,56 @@ function drawFloorGrid(ctx, width, height) {
   }
 }
 
+function drawEnemyWeapon(ctx, entity, screenX, enemyY, spriteWidth, spriteHeight, alpha, width, height) {
+  const weaponLength = spriteWidth * (entity.isBoss ? 0.5 : 0.38);
+  const weaponHeight = Math.max(4, spriteHeight * 0.06);
+  const weaponX = screenX + spriteWidth * (entity.enemyType === "demon" ? 0.08 : 0.16);
+  const weaponY = enemyY + spriteHeight * (entity.enemyType === "drone" ? 0.44 : 0.55);
+  const attackFlash = entity.attackFlash || 0;
+
+  if (entity.rangedRange > 0 && entity.distance <= entity.rangedRange + 0.8) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(0.34, 0.08 + attackFlash * 0.28);
+    ctx.globalCompositeOperation = "screen";
+    ctx.strokeStyle = entity.color;
+    ctx.lineWidth = attackFlash > 0 ? 3 : 1.5;
+    ctx.beginPath();
+    ctx.moveTo(weaponX, weaponY);
+    ctx.lineTo(width * 0.5, height * 0.53);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.globalAlpha = Math.min(0.95, alpha + 0.12);
+  ctx.translate(weaponX, weaponY);
+  ctx.rotate(attackFlash > 0 ? -0.16 : -0.05);
+  ctx.shadowBlur = 12 + attackFlash * 16;
+  ctx.shadowColor = entity.color;
+  ctx.fillStyle = "rgba(18, 18, 20, 0.94)";
+  ctx.fillRect(-weaponLength * 0.26, -weaponHeight * 0.55, weaponLength, weaponHeight);
+  ctx.fillStyle = entity.color;
+  ctx.fillRect(weaponLength * 0.15, -weaponHeight * 0.38, weaponLength * 0.55, weaponHeight * 0.76);
+  ctx.fillRect(-weaponLength * 0.1, weaponHeight * 0.15, weaponLength * 0.22, weaponHeight * 1.25);
+
+  if (attackFlash > 0) {
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = Math.min(1, attackFlash);
+    ctx.fillStyle = entity.color;
+    ctx.beginPath();
+    ctx.arc(weaponLength * 0.78, 0, weaponHeight * (1.7 + attackFlash), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(weaponLength * 0.72, -weaponHeight);
+    ctx.lineTo(weaponLength * 1.18, 0);
+    ctx.lineTo(weaponLength * 0.72, weaponHeight);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 function drawSprites(ctx, game, depthBuffer) {
   const { player, enemies, projectiles, pickups, effects, canvas } = game;
   const width = canvas.width;
@@ -174,6 +224,10 @@ function drawSprites(ctx, game, depthBuffer) {
         bob: enemy.type === "drone" ? Math.sin(game.runtime * 4 + enemy.hoverPhase) * 10 : 0,
         sprite: enemy.sprite,
         hitFlash: enemy.hitFlash,
+        attackFlash: enemy.attackFlash,
+        rangedRange: enemy.rangedRange,
+        weaponLabel: enemy.weaponLabel,
+        enemyType: enemy.type,
         isBoss: enemy.isBoss,
       });
     }
@@ -186,7 +240,8 @@ function drawSprites(ctx, game, depthBuffer) {
         x: projectile.x,
         y: projectile.y,
         color: projectile.color,
-        size: 0.16,
+        size: Math.max(0.16, projectile.radius * 1.35),
+        angle: projectile.angle,
         bob: 0,
       });
     }
@@ -273,8 +328,15 @@ function drawSprites(ctx, game, depthBuffer) {
       ctx.fillStyle = entity.color;
 
       if (entity.type === "projectile") {
+        ctx.globalCompositeOperation = "screen";
+        ctx.strokeStyle = entity.color;
+        ctx.lineWidth = Math.max(2, size * 0.12);
         ctx.beginPath();
-        ctx.arc(screenX, height / 2 + entity.bob, size * 0.2, 0, Math.PI * 2);
+        ctx.moveTo(screenX - size * 0.42, height / 2 + entity.bob);
+        ctx.lineTo(screenX + size * 0.42, height / 2 + entity.bob);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(screenX, height / 2 + entity.bob, size * 0.28, 0, Math.PI * 2);
         ctx.fill();
       } else if (entity.type === "pickup") {
         ctx.translate(screenX, height / 2 + entity.bob);
@@ -311,11 +373,13 @@ function drawSprites(ctx, game, depthBuffer) {
           ctx.drawImage(entity.sprite, enemyX, enemyY, spriteWidth, spriteHeight);
           ctx.restore();
         }
+        drawEnemyWeapon(ctx, entity, screenX, enemyY, spriteWidth, spriteHeight, alpha, width, height);
       } else {
         ctx.fillRect(spriteX, spriteY, size, size * 1.25);
         ctx.strokeStyle = "rgba(0,255,255,0.55)";
         ctx.lineWidth = 2;
         ctx.strokeRect(spriteX + 4, spriteY + 4, size - 8, size * 1.25 - 8);
+        drawEnemyWeapon(ctx, entity, screenX, spriteY, size, size * 1.25, alpha, width, height);
       }
 
       ctx.restore();
@@ -334,7 +398,7 @@ function drawWeaponOverlay(ctx, game) {
   const recoilTilt = weapon.recoilTilt || 0;
   const idleBob = Math.sin(game.runtime * 6) * 4;
   const baseX = width * (0.77 + (overlay.offsetX || 0)) + recoilKick * 0.6;
-  const baseY = height * (0.84 + (overlay.offsetY || 0)) + idleBob - recoilLift * 0.35;
+  const baseY = height * ((overlay.baseY ?? 0.955) + (overlay.offsetY || 0)) + idleBob - recoilLift * 0.28;
 
   ctx.save();
   ctx.translate(baseX, baseY);
