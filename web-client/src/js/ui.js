@@ -127,6 +127,8 @@ export class UIController {
     this.screens[name].classList.add("active");
     this.currentScreen = name;
     document.body.dataset.screen = name;
+    document.querySelector(".app-shell")?.scrollTo({ top: 0, left: 0 });
+    window.scrollTo({ top: 0, left: 0 });
     this.updateBackButton();
   }
 

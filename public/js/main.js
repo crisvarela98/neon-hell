@@ -366,10 +366,6 @@ function applyOnlineRoom(room) {
 }
 
 async function openOnline() {
-  if (!requireLoggedUser()) {
-    return;
-  }
-
   syncOnlineConfigInputs(onlineRoom);
   ui.showScreen("online");
   ui.updateOnlineLobby({
@@ -381,6 +377,13 @@ async function openOnline() {
     squadName: onlineRoom?.squadName || readOnlineConfig().squadName,
     rewardLabel: onlineRoom?.rewardLabel || "",
   });
+
+  if (!currentUser()) {
+    ui.showToast("Inicia sesion para crear sala, matchmaking y squads.");
+    ui.renderSquads(null);
+    ui.renderLiveOps(dashboardLiveOps);
+    return;
+  }
 
   try {
     const [payload, squads, liveOps] = await Promise.all([
