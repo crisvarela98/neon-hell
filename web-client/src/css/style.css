@@ -2229,6 +2229,52 @@ body:has(.splash-screen.active) .backdrop {
   display: none;
 }
 
+.pause-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 42;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(0, 255, 255, 0.16), transparent 40%),
+    rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(7px);
+}
+
+.pause-overlay.hidden {
+  display: none;
+}
+
+.pause-card {
+  width: min(430px, calc(100vw - 32px));
+  border: 1px solid rgba(0, 255, 255, 0.28);
+  border-radius: 22px;
+  padding: 22px;
+  background: rgba(0, 0, 0, 0.86);
+  box-shadow:
+    0 0 34px rgba(0, 255, 255, 0.16),
+    0 0 42px rgba(255, 0, 255, 0.14);
+  text-align: center;
+}
+
+.pause-card h2 {
+  margin-bottom: 8px;
+  color: var(--acid);
+}
+
+.pause-card p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pause-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
 .mission-complete-card {
   width: min(520px, calc(100vw - 32px));
   border: 1px solid rgba(57, 255, 20, 0.34);
@@ -3001,6 +3047,306 @@ body:has(.splash-screen.active) .backdrop {
 
   #screen-menu .menu-progress-panel .mission-columns {
     display: none !important;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .global-back-button {
+    top: max(6px, env(safe-area-inset-top)) !important;
+    left: max(6px, env(safe-area-inset-left)) !important;
+    z-index: 90 !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    min-height: 30px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 10px !important;
+    font-size: 0 !important;
+  }
+
+  .global-back-button::before {
+    content: "←";
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  body[data-screen="game"] .global-back-button {
+    display: none !important;
+  }
+
+  #screen-menu .menu-progress-panel,
+  #screen-menu .menu-hero-card,
+  #screen-menu .hero-copy {
+    display: none !important;
+  }
+
+  #screen-menu .menu-shell {
+    grid-template-columns: minmax(0, 0.72fr) minmax(250px, 1fr) !important;
+    align-items: center !important;
+  }
+
+  #screen-menu .menu-copy {
+    align-content: center !important;
+  }
+
+  #screen-menu h1 {
+    font-size: clamp(2rem, 7vw, 3rem) !important;
+  }
+
+  #screen-auth .panel-columns,
+  #screen-options .hero-panel,
+  #screen-ranking .hero-panel,
+  #screen-briefing .hero-panel,
+  #screen-online .hero-panel {
+    margin-left: 40px !important;
+    width: calc(100% - 46px) !important;
+  }
+
+  #screen-auth .footer-actions,
+  #screen-options .section-header,
+  #screen-ranking .section-header,
+  #screen-briefing .section-header,
+  #screen-online .section-header {
+    margin-left: 40px !important;
+    width: calc(100% - 46px) !important;
+  }
+
+  #screen-options .options-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #screen-options .options-grid > article:nth-child(2) {
+    display: none !important;
+  }
+
+  #screen-ranking .ranking-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  #screen-ranking .ranking-side,
+  #screen-ranking .ranking-table-head {
+    display: none !important;
+  }
+
+  #screen-ranking .ranking-list {
+    margin-top: 8px !important;
+    gap: 6px !important;
+    max-height: calc(100dvh - 185px) !important;
+    overflow: auto !important;
+  }
+
+  #screen-ranking .ranking-item {
+    grid-template-columns: 42px minmax(0, 1.35fr) minmax(58px, 0.55fr) minmax(84px, 0.75fr) !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    border-radius: 11px !important;
+  }
+
+  #screen-ranking .ranking-action-cell {
+    grid-column: auto !important;
+  }
+
+  #screen-ranking .ranking-user-state {
+    display: none !important;
+  }
+
+  #screen-ranking .ranking-badge,
+  #screen-ranking .ranking-add-button {
+    min-height: 30px !important;
+    padding: 5px 8px !important;
+    border-radius: 8px !important;
+    font-size: 0.62rem !important;
+  }
+
+  #screen-briefing .briefing-copy .mission-footer {
+    grid-template-columns: 1fr !important;
+  }
+
+  #screen-briefing #btn-briefing-back {
+    display: none !important;
+  }
+
+  #screen-online .online-layout {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr) !important;
+  }
+
+  #screen-online .online-side-stack {
+    gap: 8px !important;
+  }
+
+  #screen-online .online-side-stack .panel-card {
+    min-height: 0 !important;
+  }
+
+  #screen-online .online-side-stack .social-feed,
+  #screen-online .online-side-stack .online-players {
+    max-height: 92px !important;
+    overflow: auto !important;
+  }
+
+  .pause-card {
+    width: min(360px, 72vw) !important;
+    padding: 12px !important;
+    border-radius: 16px !important;
+  }
+
+  .pause-card h2 {
+    font-size: 1.2rem !important;
+    margin-bottom: 5px !important;
+  }
+
+  .pause-card p {
+    font-size: 0.72rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .pause-actions {
+    gap: 6px !important;
+    margin-top: 10px !important;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  #screen-auth,
+  #screen-options,
+  #screen-ranking,
+  #screen-briefing,
+  #screen-online {
+    padding: 0 !important;
+    align-items: center !important;
+  }
+
+  #screen-auth .panel-columns,
+  #screen-options .hero-panel,
+  #screen-ranking .hero-panel,
+  #screen-briefing .hero-panel,
+  #screen-online .hero-panel {
+    max-height: calc(100dvh - 12px) !important;
+    overflow: hidden !important;
+  }
+
+  #screen-auth .footer-actions,
+  #btn-options-back,
+  #btn-ranking-back,
+  #btn-online-back {
+    display: none !important;
+  }
+
+  #screen-auth .panel-columns {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) !important;
+    gap: 8px !important;
+  }
+
+  #screen-auth .panel-card {
+    padding: 10px !important;
+    border-radius: 12px !important;
+  }
+
+  #screen-auth h2,
+  #screen-options h2,
+  #screen-ranking h2,
+  #screen-online h2,
+  #screen-briefing h2 {
+    font-size: 1.15rem !important;
+    margin-bottom: 6px !important;
+  }
+
+  #screen-auth .stack-form,
+  #screen-online .online-actions,
+  #screen-options .settings-actions {
+    gap: 5px !important;
+  }
+
+  #screen-auth input,
+  #screen-online input,
+  #screen-online select {
+    min-height: 30px !important;
+    padding: 5px 8px !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+  }
+
+  #screen-auth .form-hint,
+  #screen-online .hero-copy,
+  #screen-briefing .hero-copy {
+    display: none !important;
+  }
+
+  #screen-options .section-header,
+  #screen-ranking .section-header {
+    margin-bottom: 8px !important;
+  }
+
+  #screen-options .options-grid {
+    max-width: 58vw !important;
+  }
+
+  #screen-ranking .ranking-scope-switch {
+    margin-top: 6px !important;
+  }
+
+  #screen-ranking .ranking-copy {
+    display: none !important;
+  }
+
+  #screen-online .online-config-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    margin: 8px 0 !important;
+  }
+
+  #screen-online .online-config-grid label {
+    gap: 4px !important;
+    font-size: 0.56rem !important;
+  }
+
+  #screen-online .online-side-stack article:nth-child(n + 3) {
+    display: none !important;
+  }
+
+  #screen-online .online-status {
+    padding: 7px 9px !important;
+    border-radius: 10px !important;
+  }
+
+  #screen-online .online-side-stack .social-feed,
+  #screen-online .online-side-stack .online-players {
+    max-height: 72px !important;
+  }
+
+  #screen-briefing .briefing-layout {
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr) !important;
+    gap: 8px !important;
+  }
+
+  #screen-briefing .briefing-art {
+    min-height: 0 !important;
+    height: calc(100dvh - 30px) !important;
+    border-radius: 12px !important;
+  }
+
+  #screen-briefing .briefing-copy {
+    padding: 10px !important;
+    border-radius: 12px !important;
+    gap: 7px !important;
+  }
+
+  #screen-briefing .briefing-list {
+    gap: 5px !important;
+  }
+
+  #screen-briefing .briefing-item {
+    padding: 7px 8px !important;
+    border-radius: 9px !important;
+  }
+
+  #screen-briefing .mission-footer {
+    margin-top: 4px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
 }
 

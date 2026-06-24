@@ -49,6 +49,7 @@ export class NeonHellGame {
     this.audio = audio;
     this.input = this.createInputState();
     this.running = false;
+    this.paused = false;
     this.loopHandle = 0;
     this.runtime = 0;
     this.showMinimap = true;
@@ -102,6 +103,10 @@ export class NeonHellGame {
 
       event.preventDefault();
 
+      if (!this.running || this.paused) {
+        return;
+      }
+
       if (action === "toggleMinimap") {
         if (!event.repeat) {
           this.showMinimap = !this.showMinimap;
@@ -143,6 +148,10 @@ export class NeonHellGame {
     });
 
     this.canvas.addEventListener("mousedown", () => {
+      if (!this.running || this.paused) {
+        return;
+      }
+
       this.input.fire = true;
     });
 
@@ -151,7 +160,7 @@ export class NeonHellGame {
     });
 
     this.canvas.addEventListener("mousemove", (event) => {
-      if (!this.running) {
+      if (!this.running || this.paused) {
         return;
       }
 
@@ -165,6 +174,10 @@ export class NeonHellGame {
 
       button.addEventListener("pointerdown", (event) => {
         event.preventDefault();
+
+        if (!this.running || this.paused) {
+          return;
+        }
 
         if (action === "swapWeapon") {
           this.requestWeaponSwap = true;
@@ -231,6 +244,10 @@ export class NeonHellGame {
     };
 
     joystick.addEventListener("pointerdown", (event) => {
+      if (!this.running || this.paused) {
+        return;
+      }
+
       event.preventDefault();
       activePointerId = event.pointerId;
       joystick.setPointerCapture?.(event.pointerId);
@@ -239,7 +256,7 @@ export class NeonHellGame {
     });
 
     joystick.addEventListener("pointermove", (event) => {
-      if (event.pointerId !== activePointerId) {
+      if (event.pointerId !== activePointerId || this.paused) {
         return;
       }
 
@@ -274,7 +291,7 @@ export class NeonHellGame {
     this.resetLookTouchArea = resetLook;
 
     lookZone.addEventListener("pointerdown", (event) => {
-      if (!this.running) {
+      if (!this.running || this.paused) {
         return;
       }
 
@@ -288,7 +305,7 @@ export class NeonHellGame {
     });
 
     lookZone.addEventListener("pointermove", (event) => {
-      if (event.pointerId !== activePointerId || !this.running || !this.player) {
+      if (event.pointerId !== activePointerId || !this.running || this.paused || !this.player) {
         return;
       }
 
@@ -354,6 +371,7 @@ export class NeonHellGame {
     this.gameOver = false;
     this.missionCompletePending = false;
     this.running = true;
+    this.paused = false;
     this.loadLevel(this.levelIndex);
     this.nextWave(true);
     this.emitHud();
@@ -365,10 +383,33 @@ export class NeonHellGame {
 
   stop() {
     this.running = false;
+    this.paused = false;
     this.input.moveAxis = 0;
     this.input.strafeAxis = 0;
     this.resetLookTouchArea?.();
     cancelAnimationFrame(this.loopHandle);
+  }
+
+  pause() {
+    if (!this.running || this.gameOver || this.paused) {
+      return false;
+    }
+
+    this.paused = true;
+    this.input = this.createInputState();
+    this.resetLookTouchArea?.();
+    document.exitPointerLock?.();
+    return true;
+  }
+
+  resume() {
+    if (!this.running || !this.paused) {
+      return false;
+    }
+
+    this.paused = false;
+    this.lastFrameTime = performance.now();
+    return true;
   }
 
   loop(timestamp) {
@@ -379,7 +420,10 @@ export class NeonHellGame {
     const dt = Math.min(0.033, (timestamp - this.lastFrameTime) / 1000);
     this.lastFrameTime = timestamp;
 
-    this.update(dt);
+    if (!this.paused) {
+      this.update(dt);
+    }
+
     this.render();
 
     if (this.running) {
@@ -605,6 +649,7 @@ export class NeonHellGame {
   finishRun() {
     this.gameOver = true;
     this.running = false;
+    this.paused = false;
     cancelAnimationFrame(this.loopHandle);
     this.audio?.playGameOver();
 
@@ -768,7 +813,7 @@ export class NeonHellGame {
   }
 
   receiveOnlineShot({ username, weaponName }) {
-    if (!this.onlineMode || !this.running) {
+    if (!this.onlineMode || !this.running || this.paused) {
       return;
     }
 
@@ -819,7 +864,7 @@ export class NeonHellGame {
   }
 
   emitOnlineState() {
-    if (!this.onlineMode || !this.running || this.onlineStateTimer < 0.09) {
+    if (!this.onlineMode || !this.running || this.paused || this.onlineStateTimer < 0.09) {
       return;
     }
 

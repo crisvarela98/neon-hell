@@ -35,6 +35,7 @@ const game = new NeonHellGame({
   onGameOver: (stats) => {
     lastRunStats = stats;
     lastRunSaved = false;
+    hidePauseOverlay();
     ui.hideMissionComplete();
     ui.setGameOver(stats);
     ui.showScreen("gameover", { replace: true });
@@ -106,6 +107,7 @@ function currentUser() {
 }
 
 function goToMenu({ replace = true } = {}) {
+  hidePauseOverlay();
   ui.renderDashboard({ user: currentUser(), progression: dashboardProfile });
   ui.renderProductDashboard(dashboardProduct);
   ui.renderLiveOps(dashboardLiveOps);
@@ -113,13 +115,42 @@ function goToMenu({ replace = true } = {}) {
   ui.showScreen("menu", { replace });
 }
 
-function pauseGameToMenu() {
+function exitRunToMenu() {
   socket?.emit("online:leave");
   onlineRoom = null;
   game.stop();
+  hidePauseOverlay();
   ui.hideMissionComplete();
-  ui.showToast("Pausa.");
   goToMenu();
+}
+
+function showPauseOverlay() {
+  if (!game.pause()) {
+    return;
+  }
+
+  document.getElementById("pause-overlay")?.classList.remove("hidden");
+  document.getElementById("btn-game-menu").textContent = "Continuar";
+}
+
+function hidePauseOverlay() {
+  document.getElementById("pause-overlay")?.classList.add("hidden");
+  document.getElementById("btn-game-menu").textContent = "Pausa";
+}
+
+function resumeGame() {
+  if (game.resume()) {
+    hidePauseOverlay();
+  }
+}
+
+function toggleGamePause() {
+  if (game.paused) {
+    resumeGame();
+    return;
+  }
+
+  showPauseOverlay();
 }
 
 function navigateBack() {
@@ -128,7 +159,7 @@ function navigateBack() {
   }
 
   if (ui.currentScreen === "game") {
-    pauseGameToMenu();
+    toggleGamePause();
     return;
   }
 
@@ -294,6 +325,7 @@ function startGame() {
   ui.hideMissionComplete();
   audio.unlock().catch(() => {});
   audio.startMusic();
+  hidePauseOverlay();
   ui.showScreen("game");
   game.start(currentUsername(), {
     progression: dashboardProfile,
@@ -563,6 +595,7 @@ function startOnlineGame(room) {
   ui.hideMissionComplete();
   audio.unlock().catch(() => {});
   audio.startMusic();
+  hidePauseOverlay();
   ui.showScreen("game");
   game.start(currentUsername(), {
     onlineMode: true,
@@ -732,8 +765,10 @@ function bindMenu() {
     updateAudioOptionButtons();
   });
   document.getElementById("btn-game-menu").addEventListener("click", () => {
-    pauseGameToMenu();
+    toggleGamePause();
   });
+  document.getElementById("btn-resume-game").addEventListener("click", resumeGame);
+  document.getElementById("btn-exit-run").addEventListener("click", exitRunToMenu);
   document.getElementById("btn-retry").addEventListener("click", startGame);
   document.getElementById("btn-open-ranking").addEventListener("click", openRanking);
   document.getElementById("btn-back-menu").addEventListener("click", () => goToMenu());
