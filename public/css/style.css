@@ -313,6 +313,15 @@ h2 {
   gap: 28px;
   align-items: start;
   padding: 24px;
+  position: relative;
+  padding-bottom: 92px;
+  background-image:
+    linear-gradient(90deg, rgba(1, 4, 8, 0.94), rgba(8, 12, 22, 0.74) 48%, rgba(10, 3, 18, 0.9)),
+    radial-gradient(circle at 28% 26%, rgba(0, 255, 255, 0.16), transparent 32%),
+    radial-gradient(circle at 76% 56%, rgba(255, 0, 255, 0.18), transparent 36%),
+    url("/assets/images/menu-bg.png");
+  background-size: cover;
+  background-position: center;
 }
 
 .menu-copy,
@@ -407,6 +416,20 @@ h2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.menu-button-grid #btn-options {
+  grid-column: 1 / -1;
+}
+
+.menu-account-button {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  z-index: 2;
+  width: min(260px, calc(50% - 38px));
+  min-height: 48px;
+  justify-self: start;
 }
 
 .menu-start-button {
@@ -1361,6 +1384,10 @@ h2 {
 
 .touch-controls button.use {
   background: linear-gradient(135deg, rgba(0, 255, 255, 0.9), rgba(255, 0, 255, 0.92));
+}
+
+.touch-controls button.reload {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.84), rgba(57, 255, 20, 0.86));
 }
 
 .touch-controls button.swap {
@@ -2789,6 +2816,14 @@ body:has(.splash-screen.active) .backdrop {
     height: 68px;
   }
 
+  .touch-controls button.reload {
+    right: calc(env(safe-area-inset-right) + 104px);
+    bottom: max(122px, calc(env(safe-area-inset-bottom) + 122px));
+    width: 74px;
+    height: 48px;
+    border-radius: 16px;
+  }
+
   .touch-controls button.swap {
     right: max(14px, env(safe-area-inset-right));
     bottom: max(22px, calc(env(safe-area-inset-bottom) + 22px));
@@ -2908,6 +2943,16 @@ body:has(.splash-screen.active) .backdrop {
     width: 78px;
     height: 78px;
     font-size: 0.72rem;
+  }
+
+  .touch-controls button.reload {
+    left: calc(env(safe-area-inset-left) + 214px);
+    right: auto;
+    bottom: max(36px, calc(env(safe-area-inset-bottom) + 36px));
+    width: 72px;
+    height: 44px;
+    border-radius: 14px;
+    font-size: 0.58rem;
   }
 }
 

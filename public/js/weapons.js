@@ -31,6 +31,10 @@ export class WeaponSystem {
     this.weaponOrder = ["repeater", "shotgun", "carbine", "hellburst"];
     this.currentWeapon = this.weaponOrder[0];
     this.unlockedWeapons = new Set([this.currentWeapon]);
+    this.loadedAmmo = {};
+    this.reloadTimer = 0;
+    this.reloadDuration = 0;
+    this.reloadingWeapon = null;
     this.configs = {
       repeater: {
         name: "Volt Repeater",
@@ -38,6 +42,8 @@ export class WeaponSystem {
         unlockLevel: 1,
         ammoKey: "ammo",
         ammoLabel: "Cells",
+        magazineSize: 30,
+        reloadTime: 1.05,
         damage: 18,
         range: 10.4,
         fireInterval: 0.085,
@@ -67,6 +73,8 @@ export class WeaponSystem {
         unlockLevel: 2,
         ammoKey: "shellAmmo",
         ammoLabel: "Shells",
+        magazineSize: 6,
+        reloadTime: 1.28,
         damage: 15,
         pellets: 9,
         range: 6.6,
@@ -98,6 +106,8 @@ export class WeaponSystem {
         unlockLevel: 4,
         ammoKey: "ammo",
         ammoLabel: "Cells",
+        magazineSize: 5,
+        reloadTime: 1.42,
         damage: 92,
         range: 13.8,
         fireInterval: 0.68,
@@ -128,6 +138,8 @@ export class WeaponSystem {
         unlockLevel: 6,
         ammoKey: "altAmmo",
         ammoLabel: "Cores",
+        magazineSize: 2,
+        reloadTime: 1.65,
         damage: 132,
         range: 10.8,
         fireInterval: 0.96,
@@ -161,6 +173,7 @@ export class WeaponSystem {
     }
 
     const config = this.getCurrentConfig();
+    this.ensureMagazine(this.currentWeapon);
     player.weaponName = `${config.name} // ${config.classLabel}`;
     this.currentColor = config.color;
   }
@@ -182,27 +195,61 @@ export class WeaponSystem {
     return this.getCurrentConfig().sprite;
   }
 
+  ensureMagazine(weaponId = this.currentWeapon) {
+    const config = this.configs[weaponId];
+
+    if (typeof this.loadedAmmo[weaponId] !== "number") {
+      this.loadedAmmo[weaponId] = config.magazineSize;
+    }
+
+    return this.loadedAmmo[weaponId];
+  }
+
+  getLoadedAmmo(weaponId = this.currentWeapon) {
+    return this.ensureMagazine(weaponId);
+  }
+
+  getMagazineInfo(player) {
+    const config = this.getCurrentConfig();
+
+    return {
+      loaded: this.getLoadedAmmo(),
+      magazineSize: config.magazineSize,
+      reserve: player[config.ammoKey] ?? 0,
+      ammoLabel: config.ammoLabel,
+      reloading: this.reloadingWeapon === this.currentWeapon && this.reloadTimer > 0,
+      reloadProgress: this.reloadDuration ? 1 - this.reloadTimer / this.reloadDuration : 1,
+    };
+  }
+
   getAmmoLabel(player) {
     const config = this.getCurrentConfig();
-    const amount = player[config.ammoKey] ?? 0;
+    const info = this.getMagazineInfo(player);
+    const reloadLabel = info.reloading ? `Recargando ${Math.round(info.reloadProgress * 100)}% // ` : "";
+    const activeAmmo = `${reloadLabel}${info.loaded}/${info.magazineSize} ${config.ammoLabel} // Reserva ${info.reserve}`;
 
     if (config.ammoKey === "ammo") {
-      return `${amount} ${config.ammoLabel} // ${player.shellAmmo} Shells // ${player.altAmmo} Cores`;
+      return `${activeAmmo} // ${player.shellAmmo} Shells // ${player.altAmmo} Cores`;
     }
 
     if (config.ammoKey === "shellAmmo") {
-      return `${amount} ${config.ammoLabel} // ${player.ammo} Cells // ${player.altAmmo} Cores`;
+      return `${activeAmmo} // ${player.ammo} Cells // ${player.altAmmo} Cores`;
     }
 
-    return `${amount} ${config.ammoLabel} // ${player.ammo} Cells // ${player.shellAmmo} Shells`;
+    return `${activeAmmo} // ${player.ammo} Cells // ${player.shellAmmo} Shells`;
   }
 
-  update(dt) {
+  update(dt, game = null) {
     this.cooldown = Math.max(0, this.cooldown - dt);
+    this.reloadTimer = Math.max(0, this.reloadTimer - dt);
     this.muzzleFlash = Math.max(0, this.muzzleFlash - dt * 8.5);
     this.recoilKick += (0 - this.recoilKick) * Math.min(1, dt * 12);
     this.recoilLift += (0 - this.recoilLift) * Math.min(1, dt * 12);
     this.recoilTilt += (0 - this.recoilTilt) * Math.min(1, dt * 10);
+
+    if (this.reloadingWeapon && this.reloadTimer <= 0 && game?.player) {
+      this.finishReload(game);
+    }
   }
 
   switchWeapon(game) {
@@ -214,12 +261,74 @@ export class WeaponSystem {
     }
 
     const currentIndex = unlockedOrder.indexOf(this.currentWeapon);
+    this.cancelReload();
     this.currentWeapon = unlockedOrder[(currentIndex + 1) % unlockedOrder.length];
     const config = this.getCurrentConfig();
+    this.ensureMagazine(this.currentWeapon);
     game.player.weaponName = `${config.name} // ${config.classLabel}`;
     this.currentColor = config.color;
     game.audio?.playSwapWeapon();
     game.pushAlert(`Clase activa: ${config.classLabel} // ${config.name}.`);
+  }
+
+  reload(game) {
+    const player = game.player;
+    const config = this.getCurrentConfig();
+    const loaded = this.getLoadedAmmo();
+    const reserve = player[config.ammoKey] ?? 0;
+    const missing = config.magazineSize - loaded;
+
+    if (this.reloadingWeapon) {
+      game.pushAlert("Recarga en curso.");
+      return;
+    }
+
+    if (missing <= 0) {
+      game.pushAlert("Cargador lleno.");
+      this.cooldown = Math.max(this.cooldown, 0.12);
+      return;
+    }
+
+    if (reserve <= 0) {
+      game.pushAlert(`Sin reserva de ${config.ammoLabel}. Busca pickups.`);
+      game.audio?.playPlayerDamage();
+      this.cooldown = Math.max(this.cooldown, 0.18);
+      return;
+    }
+
+    this.reloadingWeapon = this.currentWeapon;
+    this.reloadDuration = config.reloadTime;
+    this.reloadTimer = config.reloadTime;
+    this.cooldown = Math.max(this.cooldown, config.reloadTime);
+    this.muzzleFlash = 0;
+    game.pushAlert(`Recargando ${config.name}...`);
+  }
+
+  finishReload(game) {
+    const weaponId = this.reloadingWeapon;
+    const config = this.configs[weaponId];
+
+    if (!config) {
+      this.cancelReload();
+      return;
+    }
+
+    const loaded = this.ensureMagazine(weaponId);
+    const reserve = game.player[config.ammoKey] ?? 0;
+    const missing = config.magazineSize - loaded;
+    const transfer = Math.min(missing, reserve);
+
+    this.loadedAmmo[weaponId] = loaded + transfer;
+    game.player[config.ammoKey] = reserve - transfer;
+    this.cancelReload();
+    game.pushAlert(transfer > 0 ? `Recarga lista: ${this.loadedAmmo[weaponId]}/${config.magazineSize}.` : `Sin reserva de ${config.ammoLabel}.`);
+    game.emitHud?.();
+  }
+
+  cancelReload() {
+    this.reloadingWeapon = null;
+    this.reloadTimer = 0;
+    this.reloadDuration = 0;
   }
 
   shoot(game) {
@@ -231,14 +340,20 @@ export class WeaponSystem {
       return;
     }
 
-    if ((player[config.ammoKey] ?? 0) <= 0) {
-      game.pushAlert(`Sin ${config.ammoLabel}.`);
+    if (this.reloadingWeapon) {
+      game.pushAlert("Recargando...");
+      return;
+    }
+
+    if (this.getLoadedAmmo() <= 0) {
+      const reserve = player[config.ammoKey] ?? 0;
+      game.pushAlert(reserve > 0 ? "Cargador vacio. Toca RELOAD." : `Sin ${config.ammoLabel}. Busca pickups.`);
       this.cooldown = 0.18;
       game.audio?.playPlayerDamage();
       return;
     }
 
-    player[config.ammoKey] -= 1;
+    this.loadedAmmo[this.currentWeapon] -= 1;
     this.cooldown = config.fireInterval * rapidModifier;
     this.muzzleFlash = 1;
     this.currentColor = config.color;

@@ -75,6 +75,7 @@ export class NeonHellGame {
       turnRight: false,
       fire: false,
       use: false,
+      reload: false,
       moveAxis: 0,
       strafeAxis: 0,
     };
@@ -88,6 +89,7 @@ export class NeonHellGame {
       KeyD: "strafeRight",
       KeyE: "use",
       KeyQ: "swapWeapon",
+      KeyR: "reload",
       KeyM: "toggleMinimap",
       ArrowLeft: "turnLeft",
       ArrowRight: "turnRight",
@@ -122,6 +124,14 @@ export class NeonHellGame {
         return;
       }
 
+      if (action === "reload") {
+        if (!event.repeat) {
+          this.input.reload = true;
+        }
+
+        return;
+      }
+
       this.input[action] = true;
     });
 
@@ -134,7 +144,7 @@ export class NeonHellGame {
 
       event.preventDefault();
 
-      if (action === "toggleMinimap" || action === "swapWeapon") {
+      if (action === "toggleMinimap" || action === "swapWeapon" || action === "reload") {
         return;
       }
 
@@ -184,21 +194,26 @@ export class NeonHellGame {
           return;
         }
 
+        if (action === "reload") {
+          this.input.reload = true;
+          return;
+        }
+
         this.input[action] = true;
       });
 
       button.addEventListener("pointerup", () => {
-        if (action !== "swapWeapon") {
+        if (action !== "swapWeapon" && action !== "reload") {
           this.input[action] = false;
         }
       });
       button.addEventListener("pointerleave", () => {
-        if (action !== "swapWeapon") {
+        if (action !== "swapWeapon" && action !== "reload") {
           this.input[action] = false;
         }
       });
       button.addEventListener("pointercancel", () => {
-        if (action !== "swapWeapon") {
+        if (action !== "swapWeapon" && action !== "reload") {
           this.input[action] = false;
         }
       });
@@ -439,7 +454,7 @@ export class NeonHellGame {
     this.runtime += dt;
 
     if (this.missionCompletePending) {
-      this.weapon.update(dt);
+      this.weapon.update(dt, this);
       this.emitHud();
       return;
     }
@@ -450,13 +465,18 @@ export class NeonHellGame {
     this.player.wave = this.totalWave;
     this.updateTemporaryEffects(dt);
     this.player.update(dt, this.input, this.level.map);
-    this.weapon.update(dt);
+    this.weapon.update(dt, this);
     this.updatePickups();
     this.updateEffects(dt);
 
     if (this.requestWeaponSwap) {
       this.weapon.switchWeapon(this);
       this.requestWeaponSwap = false;
+    }
+
+    if (this.input.reload) {
+      this.weapon.reload(this);
+      this.input.reload = false;
     }
 
     if (this.input.use) {
@@ -622,6 +642,7 @@ export class NeonHellGame {
     this.missionCompletePending = true;
     this.input.fire = false;
     this.input.use = false;
+    this.input.reload = false;
     this.input.moveAxis = 0;
     this.input.strafeAxis = 0;
     this.pushAlert(`Mision completada: ${completedLevel.name}.`);
